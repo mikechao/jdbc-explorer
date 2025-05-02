@@ -41,7 +41,7 @@ public class ExplorerService {
                     tableNames.add(rs.getString("TABLE_NAME"));
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("getTableNames")
                     .description("Get all table names from the database")
