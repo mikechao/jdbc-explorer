@@ -2,6 +2,7 @@ package com.mike.chao.jdbc.explorer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -10,6 +11,8 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.definition.ToolDefinition;
+import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +37,11 @@ public class ExplorerService {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to get table names", e);
+            ToolDefinition toolDefinition = ToolDefinition.builder()
+                    .name("getTableNames")
+                    .description("Get all table names from the database")
+                    .build();
+            throw new ToolExecutionException(toolDefinition, e);
         }
         return tableNames;
     }
