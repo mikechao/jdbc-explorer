@@ -77,58 +77,64 @@ public class ExplorerService {
     }
 
     @Tool(name = "describeTable", description = "Describe a table in the database, including column information, primary keys, foreign keys, and indexes.")
-    public Map<String, Object> describeTable(@ToolParam(description = "Catalog Name", required = false) String catalog,
+    public Map<String, Object> describeTable(
+        @ToolParam(description = "Catalog Name", required = false) String catalog,
         @ToolParam(description = "Schema Name", required = false) String schema,
         @ToolParam(description = "Name of the table to get description for") String tableName) {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
             Map<String, Object> tableInfo = new HashMap<>();
             tableInfo.put("table", tableName);
+
+            // Columns
             try (ResultSet rs = metaData.getColumns(catalog, schema, tableName, null)) {
-                List<Map<String, String>> columns = new ArrayList<>();
+                List<Map<String, Object>> columns = new ArrayList<>();
                 while (rs.next()) {
-                    Map<String, String> column = new HashMap<>();
-                    column.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
-                    column.put("DATA_TYPE", rs.getString("DATA_TYPE"));
-                    column.put("TYPE_NAME", rs.getString("TYPE_NAME"));
-                    column.put("COLUMN_SIZE", rs.getString("COLUMN_SIZE"));
-                    column.put("NULLABLE", rs.getString("NULLABLE"));
+                    Map<String, Object> column = new HashMap<>();
+                    column.put("name", rs.getString("COLUMN_NAME"));
+                    column.put("type", rs.getString("TYPE_NAME"));
+                    column.put("size", rs.getInt("COLUMN_SIZE"));
+                    column.put("nullable", "1".equals(rs.getString("NULLABLE")));
                     columns.add(column);
                 }
                 tableInfo.put("columns", columns);
             }
 
-            // Get primary keys
+            // Primary keys
             try (ResultSet pk = metaData.getPrimaryKeys(catalog, schema, tableName)) {
                 List<String> primaryKeys = new ArrayList<>();
                 while (pk.next()) {
                     primaryKeys.add(pk.getString("COLUMN_NAME"));
                 }
-                tableInfo.put("primary_keys", primaryKeys);
+                tableInfo.put("primaryKeys", primaryKeys);
             }
 
-            // Get foreign keys
+            // Foreign keys
             try (ResultSet fk = metaData.getImportedKeys(catalog, schema, tableName)) {
-                List<Map<String, String>> foreignKeys = new ArrayList<>();
+                List<Map<String, Object>> foreignKeys = new ArrayList<>();
                 while (fk.next()) {
-                    Map<String, String> fkInfo = new HashMap<>();
-                    fkInfo.put("fk_column", fk.getString("FKCOLUMN_NAME"));
-                    fkInfo.put("pk_table", fk.getString("PKTABLE_NAME"));
-                    fkInfo.put("pk_column", fk.getString("PKCOLUMN_NAME"));
+                    Map<String, Object> fkInfo = new HashMap<>();
+                    fkInfo.put("column", fk.getString("FKCOLUMN_NAME"));
+                    fkInfo.put("referencesTable", fk.getString("PKTABLE_NAME"));
+                    fkInfo.put("referencesColumn", fk.getString("PKCOLUMN_NAME"));
                     foreignKeys.add(fkInfo);
                 }
-                tableInfo.put("foreign_keys", foreignKeys);
+                tableInfo.put("foreignKeys", foreignKeys);
             }
 
-            // Get indexes
+            // Indexes
             try (ResultSet idx = metaData.getIndexInfo(catalog, schema, tableName, false, false)) {
-                List<Map<String, String>> indexes = new ArrayList<>();
+                List<Map<String, Object>> indexes = new ArrayList<>();
                 while (idx.next()) {
-                    Map<String, String> idxInfo = new HashMap<>();
-                    idxInfo.put("index_name", idx.getString("INDEX_NAME"));
-                    idxInfo.put("column_name", idx.getString("COLUMN_NAME"));
-                    idxInfo.put("unique", String.valueOf(!idx.getBoolean("NON_UNIQUE")));
-                    indexes.add(idxInfo);
+                    String indexName = idx.getString("INDEX_NAME");
+                    String columnName = idx.getString("COLUMN_NAME");
+                    if (indexName != null && columnName != null) { // filter out statistics rows
+                        Map<String, Object> idxInfo = new HashMap<>();
+                        idxInfo.put("name", indexName);
+                        idxInfo.put("column", columnName);
+                        idxInfo.put("unique", !idx.getBoolean("NON_UNIQUE"));
+                        indexes.add(idxInfo);
+                    }
                 }
                 tableInfo.put("indexes", indexes);
             }
