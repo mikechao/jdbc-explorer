@@ -38,9 +38,13 @@ public class ExplorerService {
             DatabaseMetaData metaData = conn.getMetaData();
             try (ResultSet rs = metaData.getTables(null, null, "%", null)) {
                 while (rs.next()) {
+                    String tableType = rs.getString("TABLE_TYPE");
+                    if (!"TABLE".equalsIgnoreCase(tableType)) {
+                        continue; // Skip system tables and views
+                    }
                     Map<String, Object> table = new HashMap<>();
                     table.put("tableName", rs.getString("TABLE_NAME"));
-                    table.put("tableType", rs.getString("TABLE_TYPE"));
+                    table.put("tableType", tableType);
                     table.put("remarks", rs.getString("REMARKS"));
                     table.put("schema", rs.getString("TABLE_SCHEM"));
                     table.put("catalog", rs.getString("TABLE_CAT"));
