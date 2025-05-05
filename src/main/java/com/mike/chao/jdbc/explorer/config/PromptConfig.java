@@ -29,6 +29,7 @@ public class PromptConfig {
             'getTableNames': Get the names of all tables in the database including type, schema, and remarks
             'getDatabaseInfo': Get information about the database. Run this before anything else to know the SQL dialect, keywords etc..
             'describeTable': Describe a table in the database, including column information, primary keys, foreign keys, and indexes.
+            'addBusinessInsight': Append a business insight to the memo, which is a list of insights discovered from data analysis.
 
             1. Examine the database schema and understand the relationships between tables.
                a. Use the tools available to you to explore the database schema.
@@ -41,7 +42,8 @@ public class PromptConfig {
             4. Once the user has made a selection:
                a. Execute the queies and get the data.
                b. Analyze the data and create an interactive dashboard artifact.
-               c. Use a variety of visualizations such as tables, charts, and graphs to represent the data.
+               c. Use the 'addBusinessInsight' tool to add any business insights discovered from the data analysis to the memo
+               d. Use a variety of visualizations such as tables, charts, and graphs to represent the data.
             """;
     }
 
