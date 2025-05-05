@@ -23,11 +23,6 @@ public class DataSourceConfig {
     private String dbPassword;
 
     @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
-
-    @Bean
     @ConditionalOnMissingBean
     public DataSource dataSource() {
         DriverManagerDataSource ds = new DriverManagerDataSource();

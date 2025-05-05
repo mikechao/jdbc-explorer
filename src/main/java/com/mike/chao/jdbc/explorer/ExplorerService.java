@@ -17,18 +17,15 @@ import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ExplorerService {
 
     private final DataSource dataSource;
-    private final ObjectMapper objectMapper;
 
     @Autowired
-    public ExplorerService(DataSource dataSource, ObjectMapper objectMapper) {
+    public ExplorerService(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.objectMapper = objectMapper;
     }
 
     @Tool(name = "getTableNames", description = "Get all table names from the database, including type, schema, and remarks")
