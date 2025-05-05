@@ -77,13 +77,13 @@ public class ExplorerService {
     }
 
     @Tool(name = "describeTable", description = "Describe a table in the database, including column information, primary keys, foreign keys, and indexes.")
-    public String describeTable(@ToolParam(description = "Catalog Name", required = false) String catalog,
+    public Map<String, Object> describeTable(@ToolParam(description = "Catalog Name", required = false) String catalog,
         @ToolParam(description = "Schema Name", required = false) String schema,
         @ToolParam(description = "Name of the table to get description for") String tableName) {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
             Map<String, Object> tableInfo = new HashMap<>();
-
+            tableInfo.put("table", tableName);
             try (ResultSet rs = metaData.getColumns(catalog, schema, tableName, null)) {
                 List<Map<String, String>> columns = new ArrayList<>();
                 while (rs.next()) {
@@ -132,8 +132,7 @@ public class ExplorerService {
                 }
                 tableInfo.put("indexes", indexes);
             }
-
-            return objectMapper.writeValueAsString(tableInfo);
+            return tableInfo;
         } catch (Exception e) {
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("describeTable")
