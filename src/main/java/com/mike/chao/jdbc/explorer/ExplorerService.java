@@ -52,21 +52,30 @@ public class ExplorerService {
     }
 
     @Tool(name = "getDatabaseInfo", description = "Get information about the database. Run this before anything else to know the SQL dialect, keywords etc.")
-    public String getDatabaseInfo() {
+    public Map<String, Object> getDatabaseInfo() {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
-            Map<String, String> info = new HashMap<>();
+            Map<String, Object> info = new HashMap<>();
 
-            info.put("database_product_name", metaData.getDatabaseProductName());
-            info.put("database_product_version", metaData.getDatabaseProductVersion());
-            info.put("driver_name", metaData.getDriverName());
-            info.put("driver_version", metaData.getDriverVersion());
-            info.put("max_connections", String.valueOf(metaData.getMaxConnections()));
-            info.put("read_only", String.valueOf(metaData.isReadOnly()));
-            info.put("supports_transactions", String.valueOf(metaData.supportsTransactions()));
-            info.put("sql_keywords", metaData.getSQLKeywords());
-           
-            return objectMapper.writeValueAsString(info);
+            info.put("databaseProductName", metaData.getDatabaseProductName());
+            info.put("databaseProductVersion", metaData.getDatabaseProductVersion());
+            info.put("driverName", metaData.getDriverName());
+            info.put("driverVersion", metaData.getDriverVersion());
+            info.put("maxConnections", metaData.getMaxConnections());
+            info.put("readOnly", metaData.isReadOnly());
+            info.put("supportsTransactions", metaData.supportsTransactions());
+
+            // Split SQL keywords into a list
+            String keywords = metaData.getSQLKeywords();
+            List<String> sqlKeywords = new ArrayList<>();
+            if (keywords != null && !keywords.isEmpty()) {
+                for (String kw : keywords.split(",")) {
+                    sqlKeywords.add(kw.trim());
+                }
+            }
+            info.put("sqlKeywords", sqlKeywords);
+
+            return info;
         } catch (Exception e) {
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("getDatabaseInfo")
