@@ -1,11 +1,13 @@
 package com.mike.chao.jdbc.explorer.config;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.modelcontextprotocol.server.McpServerFeatures;
+import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpSchema.GetPromptResult;
 import io.modelcontextprotocol.spec.McpSchema.PromptMessage;
@@ -43,15 +45,19 @@ public class PromptConfig {
             """;
     }
 
+    private static final String description = "Explores the connected database and create a dashboard.";
+
+
+    private static final BiFunction<McpSyncServerExchange, McpSchema.GetPromptRequest, McpSchema.GetPromptResult> promptHandler = 
+    (exchange, getPromptRequest) -> {
+        var userMessage = new PromptMessage(Role.USER, new TextContent(getExplorerPrompt()));
+        return new GetPromptResult(description, List.of(userMessage));
+    };
     
     @Bean
     public List<McpServerFeatures.SyncPromptSpecification> prompts() {
-        String description = "Explores the connected database and create a dashboard.";
         var prompt = new McpSchema.Prompt("data-explorer", description, List.of());
-        var promptSpec = new McpServerFeatures.SyncPromptSpecification(prompt, (exchange, getPromptRequest) -> {
-            var userMessage = new PromptMessage(Role.USER, new TextContent(getExplorerPrompt()));
-            return new GetPromptResult(description, List.of(userMessage));
-        });
+        var promptSpec = new McpServerFeatures.SyncPromptSpecification(prompt, promptHandler);
         return List.of(promptSpec);
     }
 }
