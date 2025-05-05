@@ -1,6 +1,20 @@
-package com.mike.chao.jdbc.explorer;
+package com.mike.chao.jdbc.explorer.config;
 
-public class ExplorerPrompt {
+import java.util.List;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import io.modelcontextprotocol.server.McpServerFeatures;
+import io.modelcontextprotocol.spec.McpSchema;
+import io.modelcontextprotocol.spec.McpSchema.GetPromptResult;
+import io.modelcontextprotocol.spec.McpSchema.PromptMessage;
+import io.modelcontextprotocol.spec.McpSchema.Role;
+import io.modelcontextprotocol.spec.McpSchema.TextContent;
+
+@Configuration
+public class PromptConfig {
+
     public static String getExplorerPrompt() {
         return """
             You are an AI Business data analyst. You are given access to a database and a set of tools to interact with it. 
@@ -27,5 +41,17 @@ public class ExplorerPrompt {
                b. Analyze the data and create an interactive dashboard artifact.
                c. Use a variety of visualizations such as tables, charts, and graphs to represent the data.
             """;
+    }
+
+    
+    @Bean
+    public List<McpServerFeatures.SyncPromptSpecification> prompts() {
+        String description = "Explores the connected database and create a dashboard.";
+        var prompt = new McpSchema.Prompt("data-explorer", description, List.of());
+        var promptSpec = new McpServerFeatures.SyncPromptSpecification(prompt, (exchange, getPromptRequest) -> {
+            var userMessage = new PromptMessage(Role.USER, new TextContent(getExplorerPrompt()));
+            return new GetPromptResult(description, List.of(userMessage));
+        });
+        return List.of(promptSpec);
     }
 }
