@@ -7,6 +7,7 @@ import java.util.Map;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 
 import javax.sql.DataSource;
 
@@ -26,6 +27,37 @@ public class ExplorerService {
     @Autowired
     public ExplorerService(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    @Tool(name = "executeQuery", description = "Execute a SQL query and return the results")
+    public List<Map<String, Object>> executeQuery(@ToolParam(description = "SQL query to execute", required = true) String query) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection()) {
+            try (ResultSet rs = conn.createStatement().executeQuery(query)) {
+                ResultSetMetaData rsmd = rs.getMetaData();
+                int columnCount = rsmd.getColumnCount();
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    for (int i = 1; i <= columnCount; i++) {
+                        String columnName = rsmd.getColumnName(i);
+                        Object value = rs.getObject(i);
+                        if (value != null) {
+                            row.put(columnName, value);
+                        } else {
+                            row.put(columnName, null); // Handle null values explicitly
+                        }
+                    }
+                    results.add(row);
+                }
+            }
+        } catch (Exception e) {
+            ToolDefinition toolDefinition = ToolDefinition.builder()
+                    .name("executeQuery")
+                    .description("Execute a SQL query and return the results")
+                    .build();
+            throw new ToolExecutionException(toolDefinition, e);
+        }
+        return results;
     }
 
     @Tool(name = "getTableNames", description = "Get all table names from the database, including type, schema, and remarks")
