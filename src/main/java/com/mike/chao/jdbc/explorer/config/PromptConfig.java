@@ -35,9 +35,8 @@ public class PromptConfig {
                a. Use the tools available to you to explore the database schema.
             2. Come up with a list of potential dashboards that you can create based on the data in the database.
             3. Pause for user input:
-               a. Summarize the potential dashboards you can create.
-               b. Present the user with a set of multiple choice options for the dashboards.
-               c. These multiple choices should be in natural language; when a user selects one, the assistant should
+               a. Present the user with a set of multiple choice options for the dashboards and a summarization of each option.
+               b. These multiple choices should be in natural language; when a user selects one, the assistant should
                   generate the relevant queries and leverage the appropriate tool to get the data.
             4. Once the user has made a selection:
                a. Execute the queies and get the data.
