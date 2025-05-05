@@ -16,6 +16,7 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 
@@ -23,10 +24,17 @@ import org.springframework.stereotype.Service;
 public class ExplorerService {
 
     private final DataSource dataSource;
+    private final List<String> businessInsights;
 
     @Autowired
-    public ExplorerService(DataSource dataSource) {
+    public ExplorerService(DataSource dataSource,  @Qualifier("businessInsights") List<String> businessInsights) {
         this.dataSource = dataSource;
+        this.businessInsights = businessInsights;
+    }
+
+    @Tool(name = "addBusinessInsight", description = "Add a business insight discovered during data analysis to the memo.")
+    public void addBusinessInsight(@ToolParam(description = "business insight discovered during data analysis", required = true)String insight) {
+        businessInsights.add(insight);
     }
 
     @Tool(name = "executeQuery", description = "Execute a SQL query and return the results")
