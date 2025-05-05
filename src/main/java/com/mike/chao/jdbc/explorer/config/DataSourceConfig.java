@@ -1,7 +1,5 @@
 package com.mike.chao.jdbc.explorer.config;
 
-import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
