@@ -31,24 +31,30 @@ public class ExplorerService {
         this.objectMapper = objectMapper;
     }
 
-    @Tool(name = "getTableNames", description = "Get all table names from the database")
-    public List<String> getTableNames() {
-        List<String> tableNames = new ArrayList<>();
+    @Tool(name = "getTableNames", description = "Get all table names from the database, including type, schema, and remarks")
+    public List<Map<String, Object>> getTableNames() {
+        List<Map<String, Object>> tables = new ArrayList<>();
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getTables(null, null, "%", new String[] { "TABLE" })) {
+            try (ResultSet rs = metaData.getTables(null, null, "%", null)) {
                 while (rs.next()) {
-                    tableNames.add(rs.getString("TABLE_NAME"));
+                    Map<String, Object> table = new HashMap<>();
+                    table.put("tableName", rs.getString("TABLE_NAME"));
+                    table.put("tableType", rs.getString("TABLE_TYPE"));
+                    table.put("remarks", rs.getString("REMARKS"));
+                    table.put("schema", rs.getString("TABLE_SCHEM"));
+                    table.put("catalog", rs.getString("TABLE_CAT"));
+                    tables.add(table);
                 }
             }
         } catch (Exception e) {
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("getTableNames")
-                    .description("Get all table names from the database")
+                    .description("Get all table names from the database, including type, schema, and remarks")
                     .build();
             throw new ToolExecutionException(toolDefinition, e);
         }
-        return tableNames;
+        return tables;
     }
 
     @Tool(name = "getDatabaseInfo", description = "Get information about the database. Run this before anything else to know the SQL dialect, keywords etc.")
