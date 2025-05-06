@@ -4,6 +4,8 @@ A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server 
 
 ## Tools 🛠
 
+The server contains the following tools.
+
 - **addBusinessInsight** 
 
     - Adds business insights discovered during data analysis to the "Business Insights" resource. Usually executed as part of the prompt "data-explorer"
@@ -33,6 +35,20 @@ A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server 
 
     - Get information about the database including SQL dialect, keywords, database product name, etc.
     - Inputs: none
+
+## Prompts 📄
+
+The server contains 1 prompt.
+
+- **data-explorer**
+
+This prompt helps the user explore the data in their databases. It should present the user with a choice of dashboards that the LLM can create. The LLM will then execute the necessary queries and create the selected dashboard using an artifact.
+
+The prompt result in Claude Desktop
+
+<a href="https://mikechao.github.io/images/jdbc-explorer-prompt.webp" target="_blank" rel="noopener noreferrer">
+<img width="380" height="200" src="https://mikechao.github.io/images/jdbc-explorer-prompt.webp" alt="claude desktop example" />
+</a>
 
 ## Contributing
 
