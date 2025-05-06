@@ -31,7 +31,8 @@ public class DataSourceConfig {
         Map<String, String> driverClassByPrefix = Map.of(
             "jdbc:sqlite:", "org.sqlite.JDBC",
             "jdbc:postgresql:", "org.postgresql.Driver",
-            "jdbc:h2:", "org.h2.Driver"
+            "jdbc:h2:", "org.h2.Driver",
+            "jdbc:mysql:", "com.mysql.cj.jdbc.Driver" 
         );
 
         String driverClassName = null;
