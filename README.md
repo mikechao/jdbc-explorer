@@ -92,9 +92,17 @@ Sample music store data including artists, albums, tracks, invoices etc.
 
 ## Usage with Claude Desktop
 
+### From jar
+
+1. Clone the repo
+2. Build the jar with maven
+```bash
+mvn clean package
+```
+
 Add this to your `claude_desktop_config.json`:
 
-### Sqlite
+#### Sqlite
 ```json
 {
     "mcpServers": {
@@ -110,7 +118,7 @@ Add this to your `claude_desktop_config.json`:
 }
 ```
 
-### Database with username and password
+#### Database with username and password
 ```json
 {
     "mcpServers": {
@@ -127,6 +135,41 @@ Add this to your `claude_desktop_config.json`:
 	}
 }
 ```
+
+### From Docker image
+
+1. Clone the repo
+2. Build the docker image
+```bash
+docker build -t jdbc-explorer .
+```
+
+Add this to your `claude_desktop_config.json`:
+
+#### Database with username and password
+```json
+{
+    "mcpServers": {
+		  "jdbc-explorer": {
+			"command": "docker",
+			"args": [
+			  "run",
+			  "-i",
+			  "--rm",
+			  "-e",
+			  "DB_URL=jdbc:postgresql://host.docker.internal:5432/chinook",
+			  "-e",
+			  "DB_USERNAME=dbuser",
+			  "-e",
+			  "DB_PASSWORD=dbpassword",
+			  "jdbc-explorer"
+			]
+		  }
+	}
+}
+```
+
+
 
 ## Contributing
 
