@@ -33,6 +33,10 @@ public class DataSourceConfig {
             ds.setDriverClassName("org.postgresql.Driver");
             ds.setUsername(dbUsername);
             ds.setPassword(dbPassword);
+        } else if (dbUrl.startsWith("jdbc:h2:")) {
+            ds.setDriverClassName("org.h2.Driver");
+            ds.setUsername(dbUsername);
+            ds.setPassword(dbPassword);
         } else {
             throw new IllegalArgumentException("Unsupported DB URL: " + dbUrl);
         }
