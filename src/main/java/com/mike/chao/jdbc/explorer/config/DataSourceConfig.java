@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Configuration
 public class DataSourceConfig {
 
@@ -21,6 +23,11 @@ public class DataSourceConfig {
 
     @Value("${db.password:}")
     private String dbPassword;
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 
     @Bean
     @ConditionalOnMissingBean
