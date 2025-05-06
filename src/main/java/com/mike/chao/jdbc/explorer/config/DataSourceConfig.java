@@ -1,5 +1,7 @@
 package com.mike.chao.jdbc.explorer.config;
 
+import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -26,20 +28,29 @@ public class DataSourceConfig {
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setUrl(dbUrl);
 
-        if (dbUrl.startsWith("jdbc:sqlite:")) {
-            ds.setDriverClassName("org.sqlite.JDBC");
-            // SQLite usually doesn't need username/password
-        } else if (dbUrl.startsWith("jdbc:postgresql:")) {
-            ds.setDriverClassName("org.postgresql.Driver");
-            ds.setUsername(dbUsername);
-            ds.setPassword(dbPassword);
-        } else if (dbUrl.startsWith("jdbc:h2:")) {
-            ds.setDriverClassName("org.h2.Driver");
-            ds.setUsername(dbUsername);
-            ds.setPassword(dbPassword);
-        } else {
+        Map<String, String> driverClassByPrefix = Map.of(
+            "jdbc:sqlite:", "org.sqlite.JDBC",
+            "jdbc:postgresql:", "org.postgresql.Driver",
+            "jdbc:h2:", "org.h2.Driver"
+        );
+
+        String driverClassName = null;
+        for (String prefix : driverClassByPrefix.keySet()) {
+            if (dbUrl.startsWith(prefix)) {
+                driverClassName = driverClassByPrefix.get(prefix);
+                ds.setDriverClassName(driverClassName);
+                if (!"jdbc:sqlite:".equals(prefix)) {
+                    ds.setUsername(dbUsername);
+                    ds.setPassword(dbPassword);
+                }
+                break;
+            }
+        }
+
+        if (driverClassName == null) {
             throw new IllegalArgumentException("Unsupported DB URL: " + dbUrl);
         }
+        
         return ds;
     }
 
