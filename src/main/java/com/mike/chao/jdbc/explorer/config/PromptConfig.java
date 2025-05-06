@@ -37,7 +37,7 @@ public class PromptConfig {
             3. Pause for user input:
                a. Present the user with a set of multiple choice options for the dashboards and a summarization of each option.
             4. Once the user has made a selection:
-               a. Execute the queies and get the data.
+               a. Execute the queries and get the data.
                b. Analyze the data and create an interactive dashboard artifact.
                c. Use the 'addBusinessInsight' tool to add any business insights discovered from the data analysis to the memo
                d. Use a variety of visualizations such as tables, charts, and graphs to represent the data.
