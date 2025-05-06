@@ -90,6 +90,44 @@ Sample music store data including artists, albums, tracks, invoices etc.
 
 [Chinook Database](https://github.com/lerocha/chinook-database)
 
+## Usage with Claude Desktop
+
+Add this to your `claude_desktop_config.json`:
+
+### Sqlite
+```json
+{
+    "mcpServers": {
+		  "jdbc-explorer": {
+			"command": "java",
+			"args": [
+			  "-jar",
+			  "C:\\\\mcp\\\\jdbc-explorer\\\\target\\\\jdbc.explorer-0.0.1-SNAPSHOT.jar",
+			  "--db.url=jdbc:sqlite:C:\\\\mcp\\\\jdbc-explorer\\\\netflixdb.sqlite"
+			]
+		  }
+	}
+}
+```
+
+### Database with username and password
+```json
+{
+    "mcpServers": {
+		  "jdbc-explorer": {
+			"command": "java",
+			"args": [
+			  "-jar",
+			  "C:\\\\mcp\\\\jdbc-explorer\\\\target\\\\jdbc.explorer-0.0.1-SNAPSHOT.jar",
+			  "--db.url=jdbc:postgresql://localhost:5432/chinook",
+			  "--db.username=dbuser",
+			  "--db.password=dbpassword"
+			]
+		  }
+	}
+}
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
