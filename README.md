@@ -50,6 +50,46 @@ The prompt result in Claude Desktop
 <img width="380" height="200" src="https://mikechao.github.io/images/jdbc-explorer-prompt.webp" alt="claude desktop example" />
 </a>
 
+## Resources 🗂️
+
+The server contains 1 resource.
+
+- **Business Insights**
+
+    - Contains the list of business insights that the LLM came up with during data analysis.
+    - `uri`: "memo://insights"
+
+## Supported JDBC variants
+
+This server currently supports the following databases.
+
+| Database |
+|----------|
+|sqlite|
+|PostgreSQL|
+|Oracle|
+|h2|
+|MySQL|
+
+## Example Databases
+
+**Netflix Movies**
+
+Sample movie data based on Netflix catalog
+[Netflix sample DB](https://github.com/lerocha/netflixdb)
+
+**Northwind**
+
+Classic Microsoft sample database with customers, orders, products etc.
+
+[Northwind Sqlite](https://github.com/jpwhite3/northwind-SQLite3)
+
+**Chinook**
+
+Sample music store data including artists, albums, tracks, invoices etc.
+
+[Chinook Database](https://github.com/lerocha/chinook-database)
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
