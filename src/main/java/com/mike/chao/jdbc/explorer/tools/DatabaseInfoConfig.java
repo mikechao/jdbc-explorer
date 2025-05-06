@@ -50,6 +50,10 @@ public class DatabaseInfoConfig {
 
         // Implement the tool logic as a BiFunction
         BiFunction<McpSyncServerExchange, Map<String, Object>, McpSchema.CallToolResult> call = (exchange, args) -> {
+            exchange.loggingNotification(LoggingMessageNotification.builder()
+                .data("Getting database info...")
+                .level(LoggingLevel.INFO)
+                .build());
             try (Connection conn = dataSource.getConnection()) {
                 DatabaseMetaData metaData = conn.getMetaData();
                 Map<String, Object> info = new HashMap<>();
