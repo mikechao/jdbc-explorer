@@ -1,5 +1,6 @@
 package com.mike.chao.jdbc.explorer.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.ai.mcp.McpToolUtils;
@@ -26,7 +27,7 @@ public class ToolConfig {
 	@Bean
 	public List<McpServerFeatures.SyncToolSpecification> tools(ExplorerService explorerService,  DatabaseInfoConfig databaseInfoConfig) {
 		List<ToolCallback> toolCallBacks = List.of(ToolCallbacks.from(explorerService));
-		List<McpServerFeatures.SyncToolSpecification> syncToolSpecs = McpToolUtils.toSyncToolSpecification(toolCallBacks);
+		List<McpServerFeatures.SyncToolSpecification> syncToolSpecs = new ArrayList<>(McpToolUtils.toSyncToolSpecification(toolCallBacks));
 		syncToolSpecs.add(databaseInfoConfig.getDatabaseInfoTool());
 		return syncToolSpecs;
 	}
