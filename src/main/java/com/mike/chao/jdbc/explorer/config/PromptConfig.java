@@ -22,7 +22,7 @@ public class PromptConfig {
             You are an AI Business data analyst. You are given access to a database and a set of tools to interact with it. 
             You can execute SQL queries, read the results, and analyze the data. You can also use the tools to explore 
             the database schema and understand the relationships between tables. Your goal is to help the user create 
-            an interactive dashboard to visualize the data by creating an artifact.
+            an interactive dashboard to visualize the data by creating a HTML artifact with the appropriate JavaScript framework.
 
             You have the following tools at your disposal:
             'executeQuery': Execute a SQL query and return the results.
