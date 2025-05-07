@@ -1,7 +1,5 @@
 package com.mike.chao.jdbc.explorer.tools;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +52,9 @@ public class DatabaseInfoConfig {
                 .data("Getting database info...")
                 .level(LoggingLevel.INFO)
                 .build());
-            try (Connection conn = dataSource.getConnection()) {
-                DatabaseMetaData metaData = conn.getMetaData();
-                Map<String, Object> info = new HashMap<>();
+            try (var conn = dataSource.getConnection()) {
+                var metaData = conn.getMetaData();
+                var info = new HashMap<String, Object>();
 
                 info.put("databaseProductName", metaData.getDatabaseProductName());
                 info.put("databaseProductVersion", metaData.getDatabaseProductVersion());
@@ -67,10 +65,10 @@ public class DatabaseInfoConfig {
                 info.put("supportsTransactions", metaData.supportsTransactions());
 
                 // Split SQL keywords into a list
-                String keywords = metaData.getSQLKeywords();
-                List<String> sqlKeywords = new ArrayList<>();
+                var keywords = metaData.getSQLKeywords();
+                var sqlKeywords = new ArrayList<String>();
                 if (keywords != null && !keywords.isEmpty()) {
-                    for (String kw : keywords.split(",")) {
+                    for (var kw : keywords.split(",")) {
                         sqlKeywords.add(kw.trim());
                     }
                 }
