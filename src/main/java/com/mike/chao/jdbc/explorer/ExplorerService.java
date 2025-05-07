@@ -11,6 +11,8 @@ import java.sql.ResultSetMetaData;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.tool.definition.ToolDefinition;
@@ -25,6 +27,7 @@ public class ExplorerService {
 
     private final DataSource dataSource;
     private final List<String> businessInsights;
+    private final Logger logger = LoggerFactory.getLogger(ExplorerService.class);
 
     @Autowired
     public ExplorerService(DataSource dataSource,  @Qualifier("businessInsights") List<String> businessInsights) {
@@ -59,6 +62,7 @@ public class ExplorerService {
                 }
             }
         } catch (Exception e) {
+            logger.error("Error executing query: " + query + " message:" + e.getMessage(), e);
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("executeQuery")
                     .description("Execute a SQL query and return the results")
@@ -89,6 +93,7 @@ public class ExplorerService {
                 }
             }
         } catch (Exception e) {
+            logger.error("Error getTableNames message:" + e.getMessage(), e);
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("getTableNames")
                     .description("Get all table names from the database, including type, schema, and remarks")
@@ -169,6 +174,7 @@ public class ExplorerService {
             }
             return tableInfo;
         } catch (Exception e) {
+            logger.error("Error describeTable for " + tableName + " message:" + e.getMessage(), e);
             ToolDefinition toolDefinition = ToolDefinition.builder()
                     .name("describeTable")
                     .description("Describe a table in the database")
