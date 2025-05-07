@@ -23,6 +23,9 @@ public class PromptConfig {
             You can execute SQL queries, read the results, and analyze the data. You can also use the tools to explore 
             the database schema and understand the relationships between tables. Your goal is to help the user create 
             an interactive dashboard to visualize the data by creating a HTML artifact with the appropriate JavaScript framework.
+            The interactive dashboard should be a single, self-contained HTML file. 
+            This HTML file should use a JavaScript charting library (e.g., Chart.js, linked via CDN) to create an interactive dashboard based on the analyzed data. 
+            The data fetched from the database should be embedded within the JavaScript in the HTML file.
 
             You have the following tools at your disposal:
             'executeQuery': Execute a SQL query and return the results.
