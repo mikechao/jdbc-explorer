@@ -1,11 +1,12 @@
 package com.mike.chao.jdbc.explorer.config;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.mike.chao.jdbc.explorer.resources.BusinessInsights;
 
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
@@ -14,13 +15,8 @@ import io.modelcontextprotocol.spec.McpSchema;
 @Configuration
 public class ResourceConfig {
 
-    @Bean(name = "businessInsights")
-    public List<String> businessInsights() {
-        return new ArrayList<>();
-    }
-
     @Bean
-    public List<McpServerFeatures.SyncResourceSpecification> resources(List<String> businessInsights) {
+    public List<McpServerFeatures.SyncResourceSpecification> resources(BusinessInsights businessInsights) {
         var businessInsightsResource = new McpSchema.Resource(
             "memo://insights", 
             "Business Insights", 
@@ -38,8 +34,7 @@ public class ResourceConfig {
                 ));
             }
             
-            String contentText =  businessInsights.size() == 0 ? "No insights yet" : String.join("\n", businessInsights);
-            var content = new McpSchema.TextResourceContents(uri, "text/plain", contentText);
+            var content = new McpSchema.TextResourceContents(uri, "text/plain", businessInsights.getInsights());
             return new McpSchema.ReadResourceResult(List.of(content));
         };
         var resourceSpec = new McpServerFeatures.SyncResourceSpecification(businessInsightsResource, readHandler);
