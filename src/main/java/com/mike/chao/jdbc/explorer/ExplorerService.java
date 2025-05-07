@@ -105,6 +105,13 @@ public class ExplorerService {
         @ToolParam(description = "Name of the table to get description for") String tableName) {
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
+            // Check if the table exists
+            try (ResultSet tables = metaData.getTables(catalog, schema, tableName, new String[] {"TABLE"})) {
+                if (!tables.next()) {
+                    throw new IllegalArgumentException("Table '" + tableName + "' does not exist in the database.");
+                }
+            }
+
             Map<String, Object> tableInfo = new HashMap<>();
             tableInfo.put("table", tableName);
 
