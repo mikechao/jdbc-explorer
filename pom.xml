@@ -13,18 +13,30 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>jdbc.explorer</name>
 	<description>JDBC Data Explorer</description>
-	<url/>
+	<url>https://github.com/mikechao/jdbc-explorer</url>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<id>mikechao</id>
+			<name>Mike Chao</name>
+			<email>mike.chao.one@gmail.com</email>
+			<roles>
+				<role>developer</role>
+				<role>owner</role>
+			</roles>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<url>https://github.com/mikechao/jdbc-explorer</url>
+		<connection>scm:git:git://github.com/mikechao/jdbc-explorer.git</connection>
+		<developerConnection>scm:git:ssh://github.com/mikechao/jdbc-explorer.git</developerConnection>
+		<tag>HEAD</tag>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
