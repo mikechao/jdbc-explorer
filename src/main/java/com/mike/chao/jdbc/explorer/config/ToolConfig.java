@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.mike.chao.jdbc.explorer.ExplorerService;
-import com.mike.chao.jdbc.explorer.tools.DatabaseInfoConfig;
+import com.mike.chao.jdbc.explorer.tools.DatabaseInfoToolProvider;
 
 import io.modelcontextprotocol.server.McpServerFeatures;
 
@@ -25,10 +25,10 @@ public class ToolConfig {
 
 	// lower level API, but more flexible
 	@Bean
-	public List<McpServerFeatures.SyncToolSpecification> tools(ExplorerService explorerService,  DatabaseInfoConfig databaseInfoConfig) {
+	public List<McpServerFeatures.SyncToolSpecification> tools(ExplorerService explorerService,  DatabaseInfoToolProvider databaseInfoToolProvider) {
 		List<ToolCallback> toolCallBacks = List.of(ToolCallbacks.from(explorerService));
 		List<McpServerFeatures.SyncToolSpecification> syncToolSpecs = new ArrayList<>(McpToolUtils.toSyncToolSpecification(toolCallBacks));
-		syncToolSpecs.add(databaseInfoConfig.getDatabaseInfoTool());
+		syncToolSpecs.add(databaseInfoToolProvider.getDatabaseInfoTool());
 		return syncToolSpecs;
 	}
 }

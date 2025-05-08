@@ -20,12 +20,12 @@ import io.modelcontextprotocol.spec.McpSchema.LoggingMessageNotification;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 
 @Component
-public class DatabaseInfoConfig {
+public class DatabaseInfoToolProvider {
 
     private final DataSource dataSource;
     private final ObjectMapper objectMapper;
 
-    public DatabaseInfoConfig(DataSource dataSource, ObjectMapper objectMapper) {
+    public DatabaseInfoToolProvider(DataSource dataSource, ObjectMapper objectMapper) {
         this.dataSource = dataSource;
         this.objectMapper = objectMapper;
     }
