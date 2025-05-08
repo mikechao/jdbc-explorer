@@ -3,6 +3,7 @@ package com.mike.chao.jdbc.explorer.resources;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,7 +19,9 @@ public class BusinessInsights {
     }
 
     public void addInsight(String insight) {
-        insights.add(insight);
+        Optional.ofNullable(insight)
+            .filter(i -> !i.isBlank())
+            .ifPresent(insights::add);
     }
 
     public String getInsights() {
