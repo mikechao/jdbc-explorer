@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -13,6 +14,8 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbacks;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.ai.tool.definition.ToolDefinition;
@@ -54,10 +57,7 @@ public class ExplorerService {
             }
         } catch (Exception e) {
             logger.error("Error executing query: " + query + " message:" + e.getMessage(), e);
-            ToolDefinition toolDefinition = ToolDefinition.builder()
-                    .name("executeQuery")
-                    .description("Execute a SQL query and return the results")
-                    .build();
+            ToolDefinition toolDefinition = getToolDefinition("executeQuery");
             throw new ToolExecutionException(toolDefinition, e);
         }
         return results;
@@ -85,10 +85,7 @@ public class ExplorerService {
             }
         } catch (Exception e) {
             logger.error("Error getTableNames message:" + e.getMessage(), e);
-            ToolDefinition toolDefinition = ToolDefinition.builder()
-                    .name("getTableNames")
-                    .description("Get all table names from the database, including type, schema, and remarks")
-                    .build();
+            ToolDefinition toolDefinition = getToolDefinition("getTableNames");
             throw new ToolExecutionException(toolDefinition, e);
         }
         return tables;
@@ -166,11 +163,33 @@ public class ExplorerService {
             return tableInfo;
         } catch (Exception e) {
             logger.error("Error describeTable for " + tableName + " message:" + e.getMessage(), e);
-            ToolDefinition toolDefinition = ToolDefinition.builder()
-                    .name("describeTable")
-                    .description("Describe a table in the database")
-                    .build();
+            ToolDefinition toolDefinition = getToolDefinition("describeTable");
             throw new ToolExecutionException(toolDefinition, e);
         }
+    }
+
+    private ToolDefinition getToolDefinition(String toolName) {
+        List<ToolCallback> toolCallBacks = List.of(ToolCallbacks.from(this));
+        Optional<ToolDefinition> toolDefinitionOptional = toolCallBacks.stream()
+            .map(ToolCallback::getToolDefinition)
+            .filter(definition -> definition.name().equals(toolName))
+            .findFirst();
+        return toolDefinitionOptional.orElse(getUnknownToolDefinition(toolName));
+    }
+
+    private ToolDefinition getUnknownToolDefinition(String toolName) {
+        return ToolDefinition.builder()
+            .name(toolName)
+            .description("Tool not found")
+            .inputSchema("""
+                {
+                    "$schema" : "https://json-schema.org/draft/2020-12/schema",
+                    "type" : "object",
+                    "properties" : { },
+                    "required" : [ ],
+                    "additionalProperties" : false
+                }
+            """)
+            .build();
     }
 }
