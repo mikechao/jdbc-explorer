@@ -68,12 +68,10 @@ public class ExplorerService {
         List<Map<String, Object>> tables = new ArrayList<>();
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getTables(null, null, "%", null)) {
+            String[] types = {"TABLE"}; // Only include tables, exclude views and system tables
+            try (ResultSet rs = metaData.getTables(null, null, "%", types)) {
                 while (rs.next()) {
                     String tableType = rs.getString("TABLE_TYPE");
-                    if (!"TABLE".equalsIgnoreCase(tableType)) {
-                        continue; // Skip system tables and views
-                    }
                     Map<String, Object> table = new HashMap<>();
                     table.put("tableName", rs.getString("TABLE_NAME"));
                     table.put("tableType", tableType);
