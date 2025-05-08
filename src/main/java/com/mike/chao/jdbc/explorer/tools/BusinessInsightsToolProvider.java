@@ -25,17 +25,19 @@ public class BusinessInsightsToolProvider {
 
     public McpServerFeatures.SyncToolSpecification getAddBusinessInsightsTool() {
         // JSON input schema
-        McpSchema.JsonSchema inputSchema = new McpSchema.JsonSchema(
-            "object", 
-            Map.of(
-                "insights", Map.of(
-                    "type", "string",
-                    "description", "The business insight discovered during data analysis to be added to the memo."
-                )
-            ),
-            List.of("insights"),
-            false
-        );
+        String inputSchema = """
+        {
+            "type": "object",
+            "properties": {
+                "insights": {
+                    "type": "string",
+                    "description": "business insight discovered during data analysis"
+                }
+            },
+            "required": ["insights"],
+            "additionalProperties": false
+        }
+                """;
 
         // Create the Tool record
         McpSchema.Tool tool = new McpSchema.Tool(
