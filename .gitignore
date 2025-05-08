@@ -34,3 +34,4 @@ build/
 
 *.sqlite
 *.db
+*.log
