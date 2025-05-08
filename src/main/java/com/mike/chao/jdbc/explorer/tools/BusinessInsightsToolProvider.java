@@ -28,11 +28,10 @@ public class BusinessInsightsToolProvider {
         McpSchema.JsonSchema inputSchema = new McpSchema.JsonSchema(
             "object", 
             Map.of(
-                "insights", new McpSchema.JsonSchema(
-                    "string", 
-                    Map.of("description", "business insight discovered during data analysis"), 
-                    null, 
-                    false)
+                "insights", Map.of(
+                    "type", "string",
+                    "description", "The business insight discovered during data analysis to be added to the memo."
+                )
             ),
             List.of("insights"),
             false
