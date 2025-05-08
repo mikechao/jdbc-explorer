@@ -20,25 +20,15 @@ import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.mike.chao.jdbc.explorer.resources.BusinessInsights;
-
-
 @Service
 public class ExplorerService {
 
     private final DataSource dataSource;
-    private final BusinessInsights businessInsights;
     private final Logger logger = LoggerFactory.getLogger(ExplorerService.class);
 
     @Autowired
-    public ExplorerService(DataSource dataSource,  BusinessInsights businessInsights) {
+    public ExplorerService(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.businessInsights = businessInsights;
-    }
-
-    @Tool(name = "addBusinessInsight", description = "Add a business insight discovered during data analysis to the memo.")
-    public void addBusinessInsight(@ToolParam(description = "business insight discovered during data analysis", required = true)String insight) {
-        businessInsights.addInsight(insight);
     }
 
     @Tool(name = "executeQuery", description = "Execute a SQL query and return the results")
