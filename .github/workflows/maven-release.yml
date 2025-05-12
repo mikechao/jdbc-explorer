@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required to create releases and upload assets
+      packages: write # Required for GitHub Container Registry
 
     steps:
     - name: Checkout code
@@ -19,7 +20,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: '21'
-        distribution: 'temurin' # You can choose other distributions like 'adopt', 'zulu'
+        distribution: 'temurin'
         cache: 'maven'
 
     - name: Build with Maven
@@ -32,6 +33,43 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: mikechao/jdbc-explorer
+
+    # Extract version from the git tag (v1.0.0 → 1.0.0)
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    # Set up Docker Buildx for better build features
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Log in to GitHub Container Registry
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # Build and push the Docker image
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}
+        # Enable GitHub Actions cache for faster builds
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        # Add metadata labels to the Docker image
+        labels: |
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.version=${{ steps.get_version.outputs.VERSION }}
+          org.opencontainers.image.url=https://github.com/${{ github.repository }}
+          org.opencontainers.image.created=${{ github.event.repository.updated_at }}
 
     - name: Create Release with Assets
       uses: softprops/action-gh-release@v2.2.2
@@ -46,5 +84,22 @@ jobs:
         prerelease: false
         # Optional: auto-generate release notes from PRs and commits
         generate_release_notes: true
+        # Add Docker image information to the release notes
+        body: |
+          ## Docker Image
+          
+          ```bash
+          # Pull the specific version
+          docker pull ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}
+          
+          # Or use the latest tag
+          docker pull ghcr.io/${{ github.repository }}:latest
+          ```
+          
+          ## Run the container
+          
+          ```bash
+          docker run -p 8080:8080 ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}
+          ```
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
