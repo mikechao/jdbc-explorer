@@ -19,7 +19,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy the built jar from the build stage
-COPY --from=build /app/target/jdbc.explorer-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/jdbc.explorer-*.jar app.jar
 
 EXPOSE 8080
 
