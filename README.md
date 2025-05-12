@@ -97,7 +97,7 @@ Sample music store data including artists, albums, tracks, invoices etc.
 ### From jar
 
 1. Download the jar from the [Releases](https://github.com/mikechao/jdbc-explorer/releases)
-2. Build the jar with maven
+2. Or clone the repo and build the jar with maven
 ```bash
 mvn clean package
 ```
@@ -128,7 +128,7 @@ Add this to your `claude_desktop_config.json`:
 			"command": "java",
 			"args": [
 			  "-jar",
-			  "C:\\\\mcp\\\\jdbc-explorer\\\\target\\\\jdbc.explorer-0.0.1-SNAPSHOT.jar",
+			  "C:\\\\mcp\\\\jdbc.explorer-0.4.0.jar",
 			  "--db.url=jdbc:postgresql://localhost:5432/chinook",
 			  "--db.username=dbuser",
 			  "--db.password=dbpassword"
