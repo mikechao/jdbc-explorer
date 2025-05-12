@@ -1,7 +1,8 @@
 package com.mike.chao.jdbc.explorer.tools;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -25,19 +26,30 @@ public class DatabaseInfoToolProvider {
     private final DataSource dataSource;
     private final ObjectMapper objectMapper;
 
+    private static final McpSchema.JsonSchema inputSchema = new McpSchema.JsonSchema(
+            "object", 
+            Map.of(), 
+            List.of(), 
+            false
+    );
+
+    public record DatabaseInfo(
+        String databaseProductName,
+        String databaseProductVersion,
+        String driverName, 
+        String driverVersion,
+        int maxConnections,
+        boolean readOnly,
+        boolean supportsTransactions,
+        List<String> sqlKeywords
+    ) {}
+
     public DatabaseInfoToolProvider(DataSource dataSource, ObjectMapper objectMapper) {
         this.dataSource = dataSource;
         this.objectMapper = objectMapper;
     }
 
     public McpServerFeatures.SyncToolSpecification getDatabaseInfoTool() {
-        // JSON input schema
-        McpSchema.JsonSchema inputSchema = new McpSchema.JsonSchema(
-            "object", 
-            Map.of(), 
-            List.of(), 
-            false
-        );
 
         // Create the Tool record
         McpSchema.Tool tool = new McpSchema.Tool(
@@ -53,36 +65,54 @@ public class DatabaseInfoToolProvider {
                 .level(LoggingLevel.INFO)
                 .build());
             try (var conn = dataSource.getConnection()) {
-                var metaData = conn.getMetaData();
-                var info = new HashMap<String, Object>();
-
-                info.put("databaseProductName", metaData.getDatabaseProductName());
-                info.put("databaseProductVersion", metaData.getDatabaseProductVersion());
-                info.put("driverName", metaData.getDriverName());
-                info.put("driverVersion", metaData.getDriverVersion());
-                info.put("maxConnections", metaData.getMaxConnections());
-                info.put("readOnly", metaData.isReadOnly());
-                info.put("supportsTransactions", metaData.supportsTransactions());
-
-                // Split SQL keywords into a list
-                var keywords = metaData.getSQLKeywords();
-                var sqlKeywords = new ArrayList<String>();
-                if (keywords != null && !keywords.isEmpty()) {
-                    for (var kw : keywords.split(",")) {
-                        sqlKeywords.add(kw.trim());
-                    }
-                }
-                info.put("sqlKeywords", sqlKeywords);
-                var json = objectMapper.writeValueAsString(info);
-                return new McpSchema.CallToolResult(List.of(new TextContent(json)), false); // Replace with actual result and error flag
+                var metaData = conn.getMetaData();    
+                var dbInfo = collectDatabaseMetaData(metaData);
+  
+                var json = objectMapper.writeValueAsString(dbInfo);
+                return new McpSchema.CallToolResult(List.of(new TextContent(json)), false); 
             } catch (Exception e) {
-                exchange.loggingNotification(LoggingMessageNotification.builder()
-                    .data("Error getting database info" + e.getMessage())
-                    .level(LoggingLevel.ERROR)
-                    .build());
-                return new McpSchema.CallToolResult(List.of(new TextContent("Error: " + e.getMessage())), true); // Replace with actual error handling
+                if (e instanceof SQLException sqlException) {
+                    // Special handling for SQL exceptions
+                    exchange.loggingNotification(LoggingMessageNotification.builder()
+                        .data("Database error: " + sqlException.getSQLState() + " - " + sqlException.getMessage())
+                        .level(LoggingLevel.ERROR)
+                        .build());
+                } else {
+                    // General exception handling
+                    exchange.loggingNotification(LoggingMessageNotification.builder()
+                        .data("Error getting database info: " + e.getMessage())
+                        .level(LoggingLevel.ERROR)
+                        .build());
+                }
+                String errorMessage = """
+                        {"error": "Failed to retrieve database metadata.", "message": "%s"}
+                        """.formatted(e.getMessage());
+                return new McpSchema.CallToolResult(List.of(new TextContent(errorMessage)), true);
             }
         };
         return new McpServerFeatures.SyncToolSpecification(tool, call);
+    }
+
+    private DatabaseInfo collectDatabaseMetaData(DatabaseMetaData metaData) throws SQLException {
+        return new DatabaseInfo(
+            metaData.getDatabaseProductName(),
+            metaData.getDatabaseProductVersion(),
+            metaData.getDriverName(),
+            metaData.getDriverVersion(),
+            metaData.getMaxConnections(),
+            metaData.isReadOnly(),
+            metaData.supportsTransactions(),
+            parseKeywords(metaData.getSQLKeywords())
+        );
+    }
+
+    private List<String> parseKeywords(String keywords) {
+        if (keywords == null || keywords.isEmpty()) {
+            return List.of();
+        }
+        return Arrays.stream(keywords.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
     }
 }
