@@ -140,6 +140,15 @@ Add this to your `claude_desktop_config.json`:
 
 ### From Docker image
 
+You can either build the image locally or pull it from GitHub Container Registry:
+
+#### Option 1: Pull from GitHub Container Registry
+```bash
+docker pull ghcr.io/mikechao/jdbc-explorer:latest
+```
+
+#### Option 2: Build locally
+
 1. Clone the repo
 2. Build the docker image
 ```bash
@@ -164,7 +173,7 @@ Add this to your `claude_desktop_config.json`:
 			  "DB_USERNAME=dbuser",
 			  "-e",
 			  "DB_PASSWORD=dbpassword",
-			  "jdbc-explorer"
+			  "ghcr.io/mikechao/jdbc-explorer"
 			]
 		  }
 	}
