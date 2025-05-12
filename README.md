@@ -2,6 +2,8 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server for connecting LLM to databases via JDBC. This server is implemented using the [Spring AI MCP](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html) framework. The server exposes server tools, a prompt and resources to interact with the connected database.
 
+[![codecov](https://codecov.io/github/mikechao/jdbc-explorer/graph/badge.svg?token=326RPXDFJP)](https://codecov.io/github/mikechao/jdbc-explorer)
+
 ## Tools 🛠
 
 The server contains the following tools.
@@ -94,7 +96,7 @@ Sample music store data including artists, albums, tracks, invoices etc.
 
 ### From jar
 
-1. Clone the repo
+1. Download the jar from the [Releases](https://github.com/mikechao/jdbc-explorer/releases)
 2. Build the jar with maven
 ```bash
 mvn clean package
@@ -110,7 +112,7 @@ Add this to your `claude_desktop_config.json`:
 			"command": "java",
 			"args": [
 			  "-jar",
-			  "C:\\\\mcp\\\\jdbc-explorer\\\\target\\\\jdbc.explorer-0.0.1-SNAPSHOT.jar",
+			  "C:\\\\mcp\\\\jdbc.explorer-0.4.0.jar",
 			  "--db.url=jdbc:sqlite:C:\\\\mcp\\\\jdbc-explorer\\\\netflixdb.sqlite"
 			]
 		  }
