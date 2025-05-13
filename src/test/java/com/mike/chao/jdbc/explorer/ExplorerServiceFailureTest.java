@@ -94,7 +94,10 @@ class ExplorerServiceFailureTest {
         });
 
         assertEquals(sqlEx, ex.getCause());
-        verify(mockLogger).error(eq("Error getTableNames message:" + sqlEx.getMessage()), eq(sqlEx));
+        verify(mockLogger).error(
+            eq("Error getTableNames message: {}"),
+            eq(sqlEx.getMessage()), 
+            eq(sqlEx));
     }
 
     // --- describeTable Tests ---

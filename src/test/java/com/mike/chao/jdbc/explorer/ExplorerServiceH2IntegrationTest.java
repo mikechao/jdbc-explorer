@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import com.mike.chao.jdbc.explorer.data.TableInfo;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -104,20 +106,20 @@ class ExplorerServiceH2IntegrationTest {
 
     @Test
     void testGetTableNames_success() {
-        List<Map<String, Object>> tables = explorerService.getTableNames();
+        List<TableInfo> tables = explorerService.getTableNames();
         assertNotNull(tables);
         assertTrue(tables.size() >= 2); // Expecting Users and Orders, H2 might have system tables too if not filtered strictly
 
-        Optional<Map<String, Object>> usersTableOpt = tables.stream()
-            .filter(t -> "Users".equals(t.get("tableName")))
+        Optional<TableInfo> usersTableOpt = tables.stream()
+            .filter(t -> "Users".equals(t.tableName()))
             .findFirst();
         assertTrue(usersTableOpt.isPresent(), "Users table not found");
-        Map<String, Object> usersTable = usersTableOpt.get();
-        assertEquals("BASE TABLE", usersTable.get("tableType"));
-        assertEquals("PUBLIC", usersTable.get("schema")); // Default H2 schema
+        TableInfo usersTable = usersTableOpt.get();
+        assertEquals("BASE TABLE", usersTable.tableType());
+        assertEquals("PUBLIC", usersTable.schema()); // Default H2 schema
 
-        Optional<Map<String, Object>> ordersTableOpt = tables.stream()
-            .filter(t -> "Orders".equals(t.get("tableName")))
+        Optional<TableInfo> ordersTableOpt = tables.stream()
+            .filter(t -> "Orders".equals(t.tableName()))
             .findFirst();
         assertTrue(ordersTableOpt.isPresent(), "Orders table not found");
     }

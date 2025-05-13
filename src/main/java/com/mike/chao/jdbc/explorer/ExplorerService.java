@@ -24,6 +24,8 @@ import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.mike.chao.jdbc.explorer.data.TableInfo;
+
 @Service
 public class ExplorerService {
 
@@ -61,25 +63,25 @@ public class ExplorerService {
     }
 
     @Tool(name = "getTableNames", description = "Get all table names from the database, including type, schema, and remarks")
-    public List<Map<String, Object>> getTableNames() {
-        List<Map<String, Object>> tables = new ArrayList<>();
+    public List<TableInfo> getTableNames() {
+        List<TableInfo> tables = new ArrayList<>();
         try (Connection conn = dataSource.getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
             String[] types = {"TABLE"}; // Only include tables, exclude views and system tables
             try (ResultSet rs = metaData.getTables(null, null, "%", types)) {
                 while (rs.next()) {
-                    String tableType = rs.getString("TABLE_TYPE");
-                    Map<String, Object> table = new HashMap<>();
-                    table.put("tableName", rs.getString("TABLE_NAME"));
-                    table.put("tableType", tableType);
-                    table.put("remarks", rs.getString("REMARKS"));
-                    table.put("schema", rs.getString("TABLE_SCHEM"));
-                    table.put("catalog", rs.getString("TABLE_CAT"));
+                    var table = new TableInfo(
+                        rs.getString("TABLE_NAME"),
+                        rs.getString("TABLE_TYPE"),
+                        rs.getString("REMARKS"),
+                        rs.getString("TABLE_SCHEM"),
+                        rs.getString("TABLE_CAT")
+                    );
                     tables.add(table);
                 }
             }
         } catch (Exception e) {
-            logger.error("Error getTableNames message:" + e.getMessage(), e);
+            logger.error("Error getTableNames message: {}", e.getMessage(), e);
             ToolDefinition toolDefinition = getToolDefinition("getTableNames");
             throw new ToolExecutionException(toolDefinition, e);
         }
