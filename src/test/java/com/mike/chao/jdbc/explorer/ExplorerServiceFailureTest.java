@@ -16,6 +16,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,7 +74,12 @@ class ExplorerServiceFailureTest {
         });
 
         assertEquals(sqlEx, ex.getCause());
-        verify(mockLogger).error(eq("Error executing query: " + query + " message:" + sqlEx.getMessage()), eq(sqlEx));
+        verify(mockLogger).error(
+            eq("Error executing query: {} message: {}"),
+            eq(query),
+            eq(sqlEx.getMessage()),
+            eq(sqlEx)
+        );
     }
 
     // --- getTableNames Tests ---

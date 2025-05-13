@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -37,26 +38,22 @@ public class ExplorerService {
     @Tool(name = "executeQuery", description = "Execute a SQL query and return the results")
     public List<Map<String, Object>> executeQuery(@ToolParam(description = "SQL query to execute", required = true) String query) {
         List<Map<String, Object>> results = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection()) {
-            try (ResultSet rs = conn.createStatement().executeQuery(query)) {
-                ResultSetMetaData rsmd = rs.getMetaData();
-                int columnCount = rsmd.getColumnCount();
-                while (rs.next()) {
-                    Map<String, Object> row = new HashMap<>();
-                    for (int i = 1; i <= columnCount; i++) {
-                        String columnName = rsmd.getColumnName(i);
-                        Object value = rs.getObject(i);
-                        if (value != null) {
-                            row.put(columnName, value);
-                        } else {
-                            row.put(columnName, null); // Handle null values explicitly
-                        }
-                    }
-                    results.add(row);
+        try (Connection conn = dataSource.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query)) {
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    String columnName = rsmd.getColumnName(i);
+                    Object value = rs.getObject(i);
+                    row.put(columnName, value);
                 }
+                results.add(row);
             }
         } catch (Exception e) {
-            logger.error("Error executing query: " + query + " message:" + e.getMessage(), e);
+            logger.error("Error executing query: {} message: {}", query, e.getMessage(), e);
             ToolDefinition toolDefinition = getToolDefinition("executeQuery");
             throw new ToolExecutionException(toolDefinition, e);
         }
