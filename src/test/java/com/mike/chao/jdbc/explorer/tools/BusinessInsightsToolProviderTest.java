@@ -60,8 +60,8 @@ class BusinessInsightsToolProviderTest {
 
         verify(mockBusinessInsights, times(1)).addInsight(testInsight);
         ArgumentCaptor<LoggingMessageNotification> loggingCaptor = ArgumentCaptor.forClass(LoggingMessageNotification.class);
-        verify(mockExchange, times(1)).loggingNotification(loggingCaptor.capture());
-        assertEquals("Adding business insights...", loggingCaptor.getValue().data());
+        verify(mockExchange, times(2)).loggingNotification(loggingCaptor.capture());
+        assertEquals("Business insight added successfully.", loggingCaptor.getValue().data());
         assertEquals(LoggingLevel.INFO, loggingCaptor.getValue().level());
     }
 
@@ -77,13 +77,15 @@ class BusinessInsightsToolProviderTest {
         assertTrue(result.isError());
         assertEquals(1, result.content().size());
         assertTrue(result.content().get(0) instanceof TextContent);
-        assertEquals("Invalid input. Please provide a valid business insight.", ((TextContent) result.content().get(0)).text());
+        assertEquals("""
+                {"error": "NullInput", "message": "Business insight cannot be null"}
+                """, ((TextContent) result.content().get(0)).text());
 
         verify(mockBusinessInsights, never()).addInsight(anyString());
         ArgumentCaptor<LoggingMessageNotification> loggingCaptor = ArgumentCaptor.forClass(LoggingMessageNotification.class);
-        verify(mockExchange, times(1)).loggingNotification(loggingCaptor.capture());
-        assertEquals("Adding business insights...", loggingCaptor.getValue().data());
-        assertEquals(LoggingLevel.INFO, loggingCaptor.getValue().level());
+        verify(mockExchange, times(2)).loggingNotification(loggingCaptor.capture());
+        assertEquals("Error: Business insight input was null.", loggingCaptor.getValue().data());
+        assertEquals(LoggingLevel.ERROR, loggingCaptor.getValue().level());
     }
 
     @Test
@@ -97,13 +99,17 @@ class BusinessInsightsToolProviderTest {
         assertTrue(result.isError());
         assertEquals(1, result.content().size());
         assertTrue(result.content().get(0) instanceof TextContent);
-        assertEquals("Invalid input. Please provide a valid business insight.", ((TextContent) result.content().get(0)).text());
+        assertEquals("""
+                {"error": "InvalidInputType", "message": "Invalid input type for insight. Expected String.", "receivedType": "Integer"}
+                """, ((TextContent) result.content().get(0)).text());
 
         verify(mockBusinessInsights, never()).addInsight(anyString());
         ArgumentCaptor<LoggingMessageNotification> loggingCaptor = ArgumentCaptor.forClass(LoggingMessageNotification.class);
-        verify(mockExchange, times(1)).loggingNotification(loggingCaptor.capture());
-        assertEquals("Adding business insights...", loggingCaptor.getValue().data());
-        assertEquals(LoggingLevel.INFO, loggingCaptor.getValue().level());
+        verify(mockExchange, times(2)).loggingNotification(loggingCaptor.capture());
+        assertEquals("""
+                Error: {"error": "InvalidInputType", "message": "Invalid input type for insight. Expected String.", "receivedType": "Integer"}
+                """, loggingCaptor.getValue().data());
+        assertEquals(LoggingLevel.ERROR, loggingCaptor.getValue().level());
     }
 
      @Test
@@ -117,12 +123,14 @@ class BusinessInsightsToolProviderTest {
         assertTrue(result.isError());
         assertEquals(1, result.content().size());
         assertTrue(result.content().get(0) instanceof TextContent);
-        assertEquals("Invalid input. Please provide a valid business insight.", ((TextContent) result.content().get(0)).text());
+        assertEquals("""
+                {"error": "NullInput", "message": "Business insight cannot be null"}
+                """, ((TextContent) result.content().get(0)).text());
 
         verify(mockBusinessInsights, never()).addInsight(anyString());
         ArgumentCaptor<LoggingMessageNotification> loggingCaptor = ArgumentCaptor.forClass(LoggingMessageNotification.class);
-        verify(mockExchange, times(1)).loggingNotification(loggingCaptor.capture());
-        assertEquals("Adding business insights...", loggingCaptor.getValue().data());
-        assertEquals(LoggingLevel.INFO, loggingCaptor.getValue().level());
+        verify(mockExchange, times(2)).loggingNotification(loggingCaptor.capture());
+        assertEquals("Error: Business insight input was null.", loggingCaptor.getValue().data());
+        assertEquals(LoggingLevel.ERROR, loggingCaptor.getValue().level());
     }
 }

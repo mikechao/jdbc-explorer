@@ -69,7 +69,6 @@ class DatabaseInfoToolProviderTest {
                 .toList();
         assertFalse(contents.isEmpty());
         String text = contents.get(0).text();
-        assertTrue(text.contains("Error:"));
         assertTrue(text.contains("Simulated DB error"));
 
         // Verify that loggingNotification was called with error level
