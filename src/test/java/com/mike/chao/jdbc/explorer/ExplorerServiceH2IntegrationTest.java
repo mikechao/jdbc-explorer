@@ -7,6 +7,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import com.mike.chao.jdbc.explorer.data.ColumnDetail;
+import com.mike.chao.jdbc.explorer.data.ForeignKeyDetail;
+import com.mike.chao.jdbc.explorer.data.IndexDetail;
+import com.mike.chao.jdbc.explorer.data.TableDetails;
 import com.mike.chao.jdbc.explorer.data.TableInfo;
 
 import java.sql.Connection;
@@ -128,97 +132,97 @@ class ExplorerServiceH2IntegrationTest {
     void testDescribeTable_success_usersTable() {
         // H2 default catalog is the database name, often "TESTDB" for jdbc:h2:mem:testdb
         // Or null can be used for catalog if not specific. Schema is typically "PUBLIC".
-        Map<String, Object> tableInfo = explorerService.describeTable(null, "PUBLIC", "Users");
+        TableDetails tableInfo = explorerService.describeTable(null, "PUBLIC", "Users");
         assertNotNull(tableInfo);
-        assertEquals("Users", tableInfo.get("table"));
+        assertEquals("Users", tableInfo.tableName());
 
         // Columns
-        List<Map<String, Object>> columns = (List<Map<String, Object>>) tableInfo.get("columns");
+        List<ColumnDetail> columns = tableInfo.columns();
         assertNotNull(columns);
         assertTrue(columns.size() >= 5); // UserID, Username, Email, RegistrationDate, Points
 
-        Map<String, Object> userIdCol = columns.stream().filter(c -> "UserID".equals(c.get("name"))).findFirst().orElse(null);
+        ColumnDetail userIdCol = columns.stream().filter(c -> "UserID".equals(c.name())).findFirst().orElse(null);
         assertNotNull(userIdCol);
-        assertEquals("INTEGER", userIdCol.get("type")); // H2 type for INT
-        assertFalse((Boolean) userIdCol.get("nullable"));
+        assertEquals("INTEGER", userIdCol.type()); // H2 type for INT
+        assertFalse((Boolean) userIdCol.nullable());
 
-        Map<String, Object> usernameCol = columns.stream().filter(c -> "Username".equals(c.get("name"))).findFirst().orElse(null);
+        ColumnDetail usernameCol = columns.stream().filter(c -> "Username".equals(c.name())).findFirst().orElse(null);
         assertNotNull(usernameCol);
-        assertEquals("CHARACTER VARYING", usernameCol.get("type"));
-        assertEquals(100, usernameCol.get("size"));
-        assertFalse((Boolean) usernameCol.get("nullable")); // NOT NULL
+        assertEquals("CHARACTER VARYING", usernameCol.type());
+        assertEquals(100, usernameCol.size());
+        assertFalse((Boolean) usernameCol.nullable()); // NOT NULL
 
-        Map<String, Object> emailCol = columns.stream().filter(c -> "Email".equals(c.get("name"))).findFirst().orElse(null);
+        ColumnDetail emailCol = columns.stream().filter(c -> "Email".equals(c.name())).findFirst().orElse(null);
         assertNotNull(emailCol);
-        assertEquals("CHARACTER VARYING", emailCol.get("type"));
-        assertTrue((Boolean) emailCol.get("nullable")); // Nullable
+        assertEquals("CHARACTER VARYING", emailCol.type());
+        assertTrue((Boolean) emailCol.nullable()); // Nullable
 
-        Map<String, Object> pointsCol = columns.stream().filter(c -> "Points".equals(c.get("name"))).findFirst().orElse(null);
+        ColumnDetail pointsCol = columns.stream().filter(c -> "Points".equals(c.name())).findFirst().orElse(null);
         assertNotNull(pointsCol);
-        assertEquals("INTEGER", pointsCol.get("type")); // H2 type for INT
+        assertEquals("INTEGER", pointsCol.type()); // H2 type for INT
         // Default values don't make a column non-nullable unless specified
         // H2's DatabaseMetaData for getColumns might report nullable true for columns with defaults if not explicitly NOT NULL
         // For "Points INT DEFAULT 0", nullable is true unless "Points INT NOT NULL DEFAULT 0"
 
         // Primary Keys
-        List<String> primaryKeys = (List<String>) tableInfo.get("primaryKeys");
+        List<String> primaryKeys = tableInfo.primaryKeyColumns();
         assertNotNull(primaryKeys);
         assertEquals(1, primaryKeys.size());
         assertEquals("UserID", primaryKeys.get(0));
 
         // Foreign Keys (Users table has no outgoing FKs in this setup)
-        List<Map<String, Object>> foreignKeys = (List<Map<String, Object>>) tableInfo.get("foreignKeys");
+        List<ForeignKeyDetail> foreignKeys = tableInfo.foreignKeys();
         assertNotNull(foreignKeys);
         assertTrue(foreignKeys.isEmpty());
 
         // Indexes (H2 creates an index for PRIMARY KEY and UNIQUE constraints automatically)
-        List<Map<String, Object>> indexes = (List<Map<String, Object>>) tableInfo.get("indexes");
+        List<IndexDetail> indexes = tableInfo.indexes();
         assertNotNull(indexes);
         // Expecting at least PK index and unique index for Email
-        assertTrue(indexes.stream().anyMatch(idx -> "UserID".equals(idx.get("column")) && (Boolean)idx.get("unique")));
-        assertTrue(indexes.stream().anyMatch(idx -> "Email".equals(idx.get("column")) && (Boolean)idx.get("unique")));
+        assertTrue(indexes.stream().anyMatch(idx -> "UserID".equals(idx.columnName()) && (Boolean)idx.unique()));
+        assertTrue(indexes.stream().anyMatch(idx -> "Email".equals(idx.columnName()) && (Boolean)idx.unique()));
     }
 
     @Test
     void testDescribeTable_success_ordersTable() {
-        Map<String, Object> tableInfo = explorerService.describeTable(null, "PUBLIC", "Orders");
+        TableDetails tableInfo = explorerService.describeTable(null, "PUBLIC", "Orders");
         assertNotNull(tableInfo);
-        assertEquals("Orders", tableInfo.get("table"));
+        assertEquals("Orders", tableInfo.tableName());
 
         // Columns
-        List<Map<String, Object>> columns = (List<Map<String, Object>>) tableInfo.get("columns");
-        Map<String, Object> orderIdCol = columns.stream().filter(c -> "OrderID".equals(c.get("name"))).findFirst().orElse(null);
+        List<ColumnDetail> columns = tableInfo.columns();
+        ColumnDetail orderIdCol = columns.stream().filter(c -> "OrderID".equals(c.name())).findFirst().orElse(null);
         assertNotNull(orderIdCol);
-        assertEquals("INTEGER", orderIdCol.get("type"));
-        assertFalse((Boolean) orderIdCol.get("nullable"));
+        assertEquals("INTEGER", orderIdCol.type());
+        assertFalse((Boolean) orderIdCol.nullable());
 
-        Map<String, Object> userIdCol = columns.stream().filter(c -> "UserID".equals(c.get("name"))).findFirst().orElse(null);
+        ColumnDetail userIdCol = columns.stream().filter(c -> "UserID".equals(c.name())).findFirst().orElse(null);
         assertNotNull(userIdCol);
-        assertEquals("INTEGER", userIdCol.get("type"));
-        assertTrue((Boolean) userIdCol.get("nullable")); // FKs can be nullable unless specified NOT NULL
+        assertEquals("INTEGER", userIdCol.type());
+        assertTrue((Boolean) userIdCol.nullable()); // FKs can be nullable unless specified NOT NULL
 
         // Primary Keys
-        List<String> primaryKeys = (List<String>) tableInfo.get("primaryKeys");
+        List<String> primaryKeys = tableInfo.primaryKeyColumns();
         assertEquals(1, primaryKeys.size());
         assertEquals("OrderID", primaryKeys.get(0));
 
         // Foreign Keys
-        List<Map<String, Object>> foreignKeys = (List<Map<String, Object>>) tableInfo.get("foreignKeys");
+        List<ForeignKeyDetail> foreignKeys = tableInfo.foreignKeys();
         assertNotNull(foreignKeys);
         assertEquals(1, foreignKeys.size());
-        Map<String, Object> fk = foreignKeys.get(0);
-        assertEquals("UserID", fk.get("column"));
-        assertEquals("Users", fk.get("referencesTable"));
-        assertEquals("UserID", fk.get("referencesColumn"));
+        ForeignKeyDetail fk = foreignKeys.get(0);
+        assertEquals("UserID", fk.fkColumnName());
+        assertEquals("Users", fk.pkTableName());
+        assertEquals("UserID", fk.pkColumnName());
         
         // Indexes
-        List<Map<String, Object>> indexes = (List<Map<String, Object>>) tableInfo.get("indexes");
+        List<IndexDetail> indexes = tableInfo.indexes();
         assertNotNull(indexes);
         // Expecting at least PK index and our custom idx_order_date
-        assertTrue(indexes.stream().anyMatch(idx -> "OrderID".equals(idx.get("column")) && (Boolean)idx.get("unique")));
-        Optional<Map<String,Object>> orderDateIndex = indexes.stream().filter(idx -> "idx_order_date".equalsIgnoreCase((String)idx.get("name"))).findFirst();
+        assertTrue(indexes.stream().anyMatch(idx -> "OrderID".equals(idx.columnName()) && idx.unique()));
+        Optional<IndexDetail> orderDateIndex = indexes.stream().filter(idx -> "idx_order_date".equalsIgnoreCase(idx.indexName())).findFirst();
         assertTrue(orderDateIndex.isPresent());
-        assertEquals("OrderDate", orderDateIndex.get().get("column"));
-        assertFalse((Boolean)orderDateIndex.get().get("unique")); // Our index is not unique
+        assertEquals("OrderDate", orderDateIndex.get().columnName());
+        assertFalse(orderDateIndex.get().unique()); // Our index is not unique
     }
 }

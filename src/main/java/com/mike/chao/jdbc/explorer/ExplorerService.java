@@ -24,6 +24,10 @@ import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.mike.chao.jdbc.explorer.data.ColumnDetail;
+import com.mike.chao.jdbc.explorer.data.ForeignKeyDetail;
+import com.mike.chao.jdbc.explorer.data.IndexDetail;
+import com.mike.chao.jdbc.explorer.data.TableDetails;
 import com.mike.chao.jdbc.explorer.data.TableInfo;
 
 @Service
@@ -89,7 +93,7 @@ public class ExplorerService {
     }
 
     @Tool(name = "describeTable", description = "Describe a table in the database, including column information, primary keys, foreign keys, and indexes.")
-    public Map<String, Object> describeTable(
+    public TableDetails describeTable(
         @ToolParam(description = "Catalog Name", required = false) String catalog,
         @ToolParam(description = "Schema Name", required = false) String schema,
         @ToolParam(description = "Name of the table to get description for") String tableName) {
@@ -105,64 +109,86 @@ public class ExplorerService {
             Map<String, Object> tableInfo = new HashMap<>();
             tableInfo.put("table", tableName);
 
-            // Columns
-            try (ResultSet rs = metaData.getColumns(catalog, schema, tableName, null)) {
-                List<Map<String, Object>> columns = new ArrayList<>();
-                while (rs.next()) {
-                    Map<String, Object> column = new HashMap<>();
-                    column.put("name", rs.getString("COLUMN_NAME"));
-                    column.put("type", rs.getString("TYPE_NAME"));
-                    column.put("size", rs.getInt("COLUMN_SIZE"));
-                    column.put("nullable", "1".equals(rs.getString("NULLABLE")));
-                    columns.add(column);
-                }
-                tableInfo.put("columns", columns);
-            }
+            List<ColumnDetail> columnDetails = fetchColumnDetails(metaData, catalog, schema, tableName);
+            List<String> primaryKeyColumns = fetchPrimaryKeyColumns(metaData, catalog, schema, tableName);
+            List<ForeignKeyDetail> foreignKeyDetails = fetchForeignKeyDetails(metaData, catalog, schema, tableName);
+            List<IndexDetail> indexDetails = fetchIndexDetails(metaData, catalog, schema, tableName);
 
-            // Primary keys
-            try (ResultSet pk = metaData.getPrimaryKeys(catalog, schema, tableName)) {
-                List<String> primaryKeys = new ArrayList<>();
-                while (pk.next()) {
-                    primaryKeys.add(pk.getString("COLUMN_NAME"));
-                }
-                tableInfo.put("primaryKeys", primaryKeys);
-            }
-
-            // Foreign keys
-            try (ResultSet fk = metaData.getImportedKeys(catalog, schema, tableName)) {
-                List<Map<String, Object>> foreignKeys = new ArrayList<>();
-                while (fk.next()) {
-                    Map<String, Object> fkInfo = new HashMap<>();
-                    fkInfo.put("column", fk.getString("FKCOLUMN_NAME"));
-                    fkInfo.put("referencesTable", fk.getString("PKTABLE_NAME"));
-                    fkInfo.put("referencesColumn", fk.getString("PKCOLUMN_NAME"));
-                    foreignKeys.add(fkInfo);
-                }
-                tableInfo.put("foreignKeys", foreignKeys);
-            }
-
-            // Indexes
-            try (ResultSet idx = metaData.getIndexInfo(catalog, schema, tableName, false, false)) {
-                List<Map<String, Object>> indexes = new ArrayList<>();
-                while (idx.next()) {
-                    String indexName = idx.getString("INDEX_NAME");
-                    String columnName = idx.getString("COLUMN_NAME");
-                    if (indexName != null && columnName != null) { // filter out statistics rows
-                        Map<String, Object> idxInfo = new HashMap<>();
-                        idxInfo.put("name", indexName);
-                        idxInfo.put("column", columnName);
-                        idxInfo.put("unique", !idx.getBoolean("NON_UNIQUE"));
-                        indexes.add(idxInfo);
-                    }
-                }
-                tableInfo.put("indexes", indexes);
-            }
-            return tableInfo;
+            return new TableDetails(
+                tableName,
+                columnDetails,
+                primaryKeyColumns,
+                foreignKeyDetails,
+                indexDetails
+            );
         } catch (Exception e) {
             logger.error("Error describeTable for " + tableName + " message:" + e.getMessage(), e);
             ToolDefinition toolDefinition = getToolDefinition("describeTable");
             throw new ToolExecutionException(toolDefinition, e);
         }
+    }
+
+    private List<ColumnDetail> fetchColumnDetails(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
+        List<ColumnDetail> columns = new ArrayList<>();
+        try (ResultSet rs = metaData.getColumns(catalog, schema, tableName, null)) {
+            while (rs.next()) {
+                columns.add(new ColumnDetail(
+                    rs.getString("COLUMN_NAME"),
+                    rs.getString("TYPE_NAME"),
+                    rs.getInt("COLUMN_SIZE"),
+                    rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable // Corrected nullable check
+                ));
+            }
+        }
+        return columns;
+    }
+
+    private List<String> fetchPrimaryKeyColumns(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
+        List<String> primaryKeys = new ArrayList<>();
+        try (ResultSet pk = metaData.getPrimaryKeys(catalog, schema, tableName)) {
+            while (pk.next()) {
+                primaryKeys.add(pk.getString("COLUMN_NAME"));
+            }
+        }
+        return primaryKeys;
+    }
+
+    private List<ForeignKeyDetail> fetchForeignKeyDetails(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
+        List<ForeignKeyDetail> foreignKeys = new ArrayList<>();
+        try (ResultSet fk = metaData.getImportedKeys(catalog, schema, tableName)) {
+            while (fk.next()) {
+                foreignKeys.add(new ForeignKeyDetail(
+                    fk.getString("FKCOLUMN_NAME"),
+                    fk.getString("PKTABLE_NAME"),
+                    fk.getString("PKCOLUMN_NAME")
+                ));
+            }
+        }
+        return foreignKeys;
+    }
+
+    private List<IndexDetail> fetchIndexDetails(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
+        List<IndexDetail> indexes = new ArrayList<>();
+        // Setting approximate to true can be faster if exact results are not critical for row counts in indexes
+        try (ResultSet idx = metaData.getIndexInfo(catalog, schema, tableName, false, true)) {
+            while (idx.next()) {
+                String indexName = idx.getString("INDEX_NAME");
+                String columnName = idx.getString("COLUMN_NAME");
+                // TYPE column can be used to filter out table statistics (value 0 or tableIndexStatistic)
+                short type = idx.getShort("TYPE");
+                if (type == DatabaseMetaData.tableIndexStatistic) {
+                    continue; // Skip table statistics row
+                }
+                if (indexName != null && columnName != null) {
+                    indexes.add(new IndexDetail(
+                        indexName,
+                        columnName,
+                        !idx.getBoolean("NON_UNIQUE")
+                    ));
+                }
+            }
+        }
+        return indexes;
     }
 
     private ToolDefinition getToolDefinition(String toolName) {

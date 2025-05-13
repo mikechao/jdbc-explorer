@@ -9,10 +9,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.springframework.ai.tool.execution.ToolExecutionException;
 
+import com.mike.chao.jdbc.explorer.data.IndexDetail;
+import com.mike.chao.jdbc.explorer.data.TableDetails;
+
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -153,14 +155,15 @@ class ExplorerServiceFailureTest {
 
 
         ResultSet mockIndexResultSet = mock(ResultSet.class);
-        when(mockDatabaseMetaData.getIndexInfo(null, null, tableName, false, false)).thenReturn(mockIndexResultSet);
+        when(mockDatabaseMetaData.getIndexInfo(null, null, tableName, false, true)).thenReturn(mockIndexResultSet);
         when(mockIndexResultSet.next()).thenReturn(true).thenReturn(false);
         when(mockIndexResultSet.getString("INDEX_NAME")).thenReturn("some_index_name");
         when(mockIndexResultSet.getString("COLUMN_NAME")).thenReturn(null); // Null column name
-        // getBoolean("NON_UNIQUE") won't be called if columnName is null
+        when(mockIndexResultSet.getShort("TYPE")).thenReturn(DatabaseMetaData.tableIndexOther); // Or any type that is not tableIndexStatistic
 
-        Map<String, Object> tableInfo = explorerService.describeTable(null, null, tableName);
-        List<Map<String, Object>> indexes = (List<Map<String, Object>>) tableInfo.get("indexes");
-        assertTrue(indexes.isEmpty()); // Should be filtered out
+
+        TableDetails tableInfo = explorerService.describeTable(null, null, tableName);
+        List<IndexDetail> indexes = tableInfo.indexes();
+        assertTrue(indexes.isEmpty(), "Indexes list should be empty when column name is null"); // Should be filtered out
     }
 }
