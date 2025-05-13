@@ -116,7 +116,12 @@ class ExplorerServiceFailureTest {
 
         assertTrue(ex.getCause() instanceof IllegalArgumentException);
         assertEquals("Table '" + tableName + "' does not exist in the database.", ex.getCause().getMessage());
-        verify(mockLogger).error(startsWith("Error describeTable for " + tableName), isA(IllegalArgumentException.class));
+        verify(mockLogger).error(
+            eq("Error describeTable for {} message: {}"),
+            eq(tableName),
+            startsWith("Table 'non_existent_table' does not exist in the database."),
+            isA(IllegalArgumentException.class)
+        );
         verify(mockConnection, times(1)).close();
         verify(mockTableNotFoundResultSet, times(1)).close();
     }
@@ -136,7 +141,11 @@ class ExplorerServiceFailureTest {
         });
         
         assertEquals(sqlEx, ex.getCause());
-        verify(mockLogger).error(eq("Error describeTable for " + tableName + " message:" + sqlEx.getMessage()), eq(sqlEx));
+        verify(mockLogger).error(
+            eq("Error describeTable for {} message: {}"),
+            eq(tableName),
+            eq(sqlEx.getMessage()), 
+            eq(sqlEx));
         verify(mockConnection, times(1)).close();
         verify(mockTableExistsResultSet, times(1)).close(); // This one was closed before exception
     }

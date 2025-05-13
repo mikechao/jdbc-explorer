@@ -106,9 +106,6 @@ public class ExplorerService {
                 }
             }
 
-            Map<String, Object> tableInfo = new HashMap<>();
-            tableInfo.put("table", tableName);
-
             List<ColumnDetail> columnDetails = fetchColumnDetails(metaData, catalog, schema, tableName);
             List<String> primaryKeyColumns = fetchPrimaryKeyColumns(metaData, catalog, schema, tableName);
             List<ForeignKeyDetail> foreignKeyDetails = fetchForeignKeyDetails(metaData, catalog, schema, tableName);
@@ -122,7 +119,7 @@ public class ExplorerService {
                 indexDetails
             );
         } catch (Exception e) {
-            logger.error("Error describeTable for " + tableName + " message:" + e.getMessage(), e);
+            logger.error("Error describeTable for {} message: {}", tableName, e.getMessage(), e);
             ToolDefinition toolDefinition = getToolDefinition("describeTable");
             throw new ToolExecutionException(toolDefinition, e);
         }
@@ -136,7 +133,7 @@ public class ExplorerService {
                     rs.getString("COLUMN_NAME"),
                     rs.getString("TYPE_NAME"),
                     rs.getInt("COLUMN_SIZE"),
-                    rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable // Corrected nullable check
+                    rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable
                 ));
             }
         }
@@ -191,6 +188,13 @@ public class ExplorerService {
         return indexes;
     }
 
+    /**
+     * Get a ToolDefinition for a given tool name using the ToolCallbacks
+     * method from Spring AI to find the methods annotated with @Tool in this class.
+     * This is used to provide a description of the tool in case of an error.
+     * @param toolName
+     * @return
+     */
     private ToolDefinition getToolDefinition(String toolName) {
         List<ToolCallback> toolCallBacks = List.of(ToolCallbacks.from(this));
         Optional<ToolDefinition> toolDefinitionOptional = toolCallBacks.stream()
