@@ -112,10 +112,33 @@ class BusinessInsightsToolProviderTest {
         assertEquals(LoggingLevel.ERROR, loggingCaptor.getValue().level());
     }
 
-     @Test
-    void testGetAddBusinessInsightsTool_call_missingInsightKey() {
+    @Test
+    void testGetAddBusinessInsightsTool_call_emptyArgs() {
         McpServerFeatures.SyncToolSpecification spec = toolProvider.getAddBusinessInsightsTool();
         Map<String, Object> args = Map.of(); // "insights" key is missing
+
+        CallToolResult result = spec.call().apply(mockExchange, args);
+
+        assertNotNull(result);
+        assertTrue(result.isError());
+        assertEquals(1, result.content().size());
+        assertTrue(result.content().get(0) instanceof TextContent);
+        assertEquals("""
+                {"error": "NoArguments", "message": "No arguments provided"}
+                """, ((TextContent) result.content().get(0)).text());
+
+        verify(mockBusinessInsights, never()).addInsight(anyString());
+        ArgumentCaptor<LoggingMessageNotification> loggingCaptor = ArgumentCaptor.forClass(LoggingMessageNotification.class);
+        verify(mockExchange, times(1)).loggingNotification(loggingCaptor.capture());
+        assertEquals("Error: No arguments provided.", loggingCaptor.getValue().data());
+        assertEquals(LoggingLevel.ERROR, loggingCaptor.getValue().level());
+    }
+
+    @Test
+    void testGetAddBusinessInsightsTool_call_nullValue() {
+        McpServerFeatures.SyncToolSpecification spec = toolProvider.getAddBusinessInsightsTool();
+        Map<String, Object> args = new HashMap<>();
+        args.put("insights", null); // Null value for insights
 
         CallToolResult result = spec.call().apply(mockExchange, args);
 
