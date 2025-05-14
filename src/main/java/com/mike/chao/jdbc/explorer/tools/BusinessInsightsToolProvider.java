@@ -2,7 +2,6 @@ package com.mike.chao.jdbc.explorer.tools;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 import org.springframework.stereotype.Component;
 
@@ -62,53 +61,50 @@ public class BusinessInsightsToolProvider {
             INPUT_SCHEMA
         );
 
-        // Implement the tool logic as a BiFunction
-        BiFunction<McpSyncServerExchange, Map<String, Object>, McpSchema.CallToolResult> call = (exchange, args) -> {
-            Object insight = args.get("insights");
-            exchange.loggingNotification(LoggingMessageNotification.builder()
-                .data("Adding business insights...")
-                .level(LoggingLevel.INFO)
-                .build());
-            var result = switch (insight) {
-                case String insightText when !insightText.isBlank() -> {
-                    businessInsights.addInsight(insightText);
-                    logToolActivity(exchange, "Business insight added successfully.", LoggingLevel.INFO);
-                    yield new McpSchema.CallToolResult(
-                        List.of(new McpSchema.TextContent("Business insight added successfully.")), 
-                        false
-                    );
-                }
-                case null -> {
-                    logToolActivity(exchange, "Error: Business insight input was null.", LoggingLevel.ERROR);
-                    yield new McpSchema.CallToolResult(
-                    List.of(new McpSchema.TextContent(
-                        """
-                        {"error": "NullInput", "message": "Business insight cannot be null"}
-                        """
-                    )), 
+        return new McpServerFeatures.SyncToolSpecification(tool, this::handleAddBusinessInsight);
+    }
+
+    private McpSchema.CallToolResult handleAddBusinessInsight(McpSyncServerExchange exchange, Map<String, Object> args) {
+        Object insight = args.get(INSIGHTS_ARG_KEY);
+        exchange.loggingNotification(LoggingMessageNotification.builder()
+            .data("Adding business insights...")
+            .level(LoggingLevel.INFO)
+            .build());
+        var result = switch (insight) {
+            case String insightText when !insightText.isBlank() -> {
+                businessInsights.addInsight(insightText);
+                logToolActivity(exchange, "Business insight added successfully.", LoggingLevel.INFO);
+                yield new McpSchema.CallToolResult(
+                    List.of(new McpSchema.TextContent("Business insight added successfully.")), 
+                    false
+                );
+            }
+            case null -> {
+                logToolActivity(exchange, "Error: Business insight input was null.", LoggingLevel.ERROR);
+                yield new McpSchema.CallToolResult(
+                List.of(new McpSchema.TextContent(
+                    """
+                    {"error": "NullInput", "message": "Business insight cannot be null"}
+                    """
+                )), 
+                true
+                );
+            }
+            default -> {
+                String errorMessage = String.format(
+                    """
+                    {"error": "InvalidInputType", "message": "Invalid input type for insight. Expected String.", "receivedType": "%s"}
+                    """,
+                    insight.getClass().getSimpleName()
+                );
+                logToolActivity(exchange, "Error: " + errorMessage, LoggingLevel.ERROR);
+                yield new McpSchema.CallToolResult(
+                    List.of(new McpSchema.TextContent(errorMessage)), 
                     true
-                    );
-                }
-                default -> {
-                    String errorMessage = String.format(
-                        """
-                        {"error": "InvalidInputType", "message": "Invalid input type for insight. Expected String.", "receivedType": "%s"}
-                        """,
-                        insight.getClass().getSimpleName()
-                    );
-                    logToolActivity(exchange, "Error: " + errorMessage, LoggingLevel.ERROR);
-                    yield new McpSchema.CallToolResult(
-                        List.of(new McpSchema.TextContent(errorMessage)), 
-                        true
-                    );
-                } 
-                
-
-            };
-            return result;
+                );
+            } 
         };
-
-        return new McpServerFeatures.SyncToolSpecification(tool, call);
+        return result;
     }
 
     private void logToolActivity(McpSyncServerExchange exchange, String message, LoggingLevel level) {
