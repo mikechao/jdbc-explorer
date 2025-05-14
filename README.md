@@ -1,6 +1,6 @@
 # JDBC Explorer
 
-A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server for connecting LLM to databases via JDBC. This server is implemented using the [Spring AI MCP](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html) framework. The server exposes server tools, a prompt and resources to interact with the connected database.
+A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server for connecting LLM to databases via JDBC. This server is implemented using the [Spring AI MCP](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html) framework. The server exposes tools, a prompt and resources to interact with the connected database.
 
 [![codecov](https://codecov.io/github/mikechao/jdbc-explorer/graph/badge.svg?token=326RPXDFJP)](https://codecov.io/github/mikechao/jdbc-explorer)
 
