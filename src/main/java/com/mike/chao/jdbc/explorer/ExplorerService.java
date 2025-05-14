@@ -5,11 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.sql.Statement;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 
 import javax.sql.DataSource;
 
@@ -44,10 +41,10 @@ public class ExplorerService {
     @Tool(name = "executeQuery", description = "Execute a SQL query and return the results")
     public List<Map<String, Object>> executeQuery(@ToolParam(description = "SQL query to execute", required = true) String query) {
         List<Map<String, Object>> results = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection();
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query)) {
-            ResultSetMetaData rsmd = rs.getMetaData();
+        try (var conn = dataSource.getConnection();
+            var stmt = conn.createStatement();
+            var rs = stmt.executeQuery(query)) {
+            var rsmd = rs.getMetaData();
             int columnCount = rsmd.getColumnCount();
             while (rs.next()) {
                 Map<String, Object> row = new HashMap<>();
@@ -69,10 +66,10 @@ public class ExplorerService {
     @Tool(name = "getTableNames", description = "Get all table names from the database, including type, schema, and remarks")
     public List<TableInfo> getTableNames() {
         List<TableInfo> tables = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection()) {
-            DatabaseMetaData metaData = conn.getMetaData();
+        try (var conn = dataSource.getConnection()) {
+            var metaData = conn.getMetaData();
             String[] types = {"TABLE"}; // Only include tables, exclude views and system tables
-            try (ResultSet rs = metaData.getTables(null, null, "%", types)) {
+            try (var rs = metaData.getTables(null, null, "%", types)) {
                 while (rs.next()) {
                     var table = new TableInfo(
                         rs.getString("TABLE_NAME"),
@@ -97,12 +94,13 @@ public class ExplorerService {
         @ToolParam(description = "Catalog Name", required = false) String catalog,
         @ToolParam(description = "Schema Name", required = false) String schema,
         @ToolParam(description = "Name of the table to get description for") String tableName) {
-        try (Connection conn = dataSource.getConnection()) {
-            DatabaseMetaData metaData = conn.getMetaData();
+        try (var conn = dataSource.getConnection()) {
+            var metaData = conn.getMetaData();
             // Check if the table exists
             try (ResultSet tables = metaData.getTables(catalog, schema, tableName, new String[] {"TABLE"})) {
                 if (!tables.next()) {
-                    throw new IllegalArgumentException("Table '" + tableName + "' does not exist in the database.");
+                    throw new IllegalArgumentException("""
+                        Table '%s' does not exist in the database.""".formatted(tableName));
                 }
             }
 
@@ -127,7 +125,7 @@ public class ExplorerService {
 
     private List<ColumnDetail> fetchColumnDetails(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
         List<ColumnDetail> columns = new ArrayList<>();
-        try (ResultSet rs = metaData.getColumns(catalog, schema, tableName, null)) {
+        try (var rs = metaData.getColumns(catalog, schema, tableName, null)) {
             while (rs.next()) {
                 columns.add(new ColumnDetail(
                     rs.getString("COLUMN_NAME"),
@@ -142,7 +140,7 @@ public class ExplorerService {
 
     private List<String> fetchPrimaryKeyColumns(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
         List<String> primaryKeys = new ArrayList<>();
-        try (ResultSet pk = metaData.getPrimaryKeys(catalog, schema, tableName)) {
+        try (var pk = metaData.getPrimaryKeys(catalog, schema, tableName)) {
             while (pk.next()) {
                 primaryKeys.add(pk.getString("COLUMN_NAME"));
             }
@@ -152,7 +150,7 @@ public class ExplorerService {
 
     private List<ForeignKeyDetail> fetchForeignKeyDetails(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
         List<ForeignKeyDetail> foreignKeys = new ArrayList<>();
-        try (ResultSet fk = metaData.getImportedKeys(catalog, schema, tableName)) {
+        try (var fk = metaData.getImportedKeys(catalog, schema, tableName)) {
             while (fk.next()) {
                 foreignKeys.add(new ForeignKeyDetail(
                     fk.getString("FKCOLUMN_NAME"),
@@ -167,7 +165,7 @@ public class ExplorerService {
     private List<IndexDetail> fetchIndexDetails(DatabaseMetaData metaData, String catalog, String schema, String tableName) throws java.sql.SQLException {
         List<IndexDetail> indexes = new ArrayList<>();
         // Setting approximate to true can be faster if exact results are not critical for row counts in indexes
-        try (ResultSet idx = metaData.getIndexInfo(catalog, schema, tableName, false, true)) {
+        try (var idx = metaData.getIndexInfo(catalog, schema, tableName, false, true)) {
             while (idx.next()) {
                 String indexName = idx.getString("INDEX_NAME");
                 String columnName = idx.getString("COLUMN_NAME");
