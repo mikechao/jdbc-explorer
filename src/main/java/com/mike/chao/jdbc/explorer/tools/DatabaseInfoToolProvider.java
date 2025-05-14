@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 import javax.sql.DataSource;
 
@@ -50,47 +49,46 @@ public class DatabaseInfoToolProvider {
     }
 
     public McpServerFeatures.SyncToolSpecification getDatabaseInfoTool() {
-
         // Create the Tool record
-        McpSchema.Tool tool = new McpSchema.Tool(
+        var tool = new McpSchema.Tool(
             "getDatabaseInfo",
              "Get information about the database. Run this before anything else to know the SQL dialect, keywords etc.", 
              inputSchema
         );
 
-        // Implement the tool logic as a BiFunction
-        BiFunction<McpSyncServerExchange, Map<String, Object>, McpSchema.CallToolResult> call = (exchange, args) -> {
-            exchange.loggingNotification(LoggingMessageNotification.builder()
-                .data("Getting database info...")
-                .level(LoggingLevel.INFO)
-                .build());
-            try (var conn = dataSource.getConnection()) {
-                var metaData = conn.getMetaData();    
-                var dbInfo = collectDatabaseMetaData(metaData);
-  
-                var json = objectMapper.writeValueAsString(dbInfo);
-                return new McpSchema.CallToolResult(List.of(new TextContent(json)), false); 
-            } catch (Exception e) {
-                if (e instanceof SQLException sqlException) {
-                    // Special handling for SQL exceptions
-                    exchange.loggingNotification(LoggingMessageNotification.builder()
-                        .data("Database error: " + sqlException.getSQLState() + " - " + sqlException.getMessage())
-                        .level(LoggingLevel.ERROR)
-                        .build());
-                } else {
-                    // General exception handling
-                    exchange.loggingNotification(LoggingMessageNotification.builder()
-                        .data("Error getting database info: " + e.getMessage())
-                        .level(LoggingLevel.ERROR)
-                        .build());
-                }
-                String errorMessage = """
-                        {"error": "Failed to retrieve database metadata.", "message": "%s"}
-                        """.formatted(e.getMessage());
-                return new McpSchema.CallToolResult(List.of(new TextContent(errorMessage)), true);
+        return new McpServerFeatures.SyncToolSpecification(tool, this::handleGetDatabaseInfo);
+    }
+
+    private McpSchema.CallToolResult handleGetDatabaseInfo(McpSyncServerExchange exchange, Map<String, Object> args) {
+        exchange.loggingNotification(LoggingMessageNotification.builder()
+            .data("Getting database info...")
+            .level(LoggingLevel.INFO)
+            .build());
+        try (var conn = dataSource.getConnection()) {
+            var metaData = conn.getMetaData();    
+            var dbInfo = collectDatabaseMetaData(metaData);
+
+            var json = objectMapper.writeValueAsString(dbInfo);
+            return new McpSchema.CallToolResult(List.of(new TextContent(json)), false); 
+        } catch (Exception e) {
+            if (e instanceof SQLException sqlException) {
+                // Special handling for SQL exceptions
+                exchange.loggingNotification(LoggingMessageNotification.builder()
+                    .data("Database error: " + sqlException.getSQLState() + " - " + sqlException.getMessage())
+                    .level(LoggingLevel.ERROR)
+                    .build());
+            } else {
+                // General exception handling
+                exchange.loggingNotification(LoggingMessageNotification.builder()
+                    .data("Error getting database info: " + e.getMessage())
+                    .level(LoggingLevel.ERROR)
+                    .build());
             }
-        };
-        return new McpServerFeatures.SyncToolSpecification(tool, call);
+            String errorMessage = """
+                    {"error": "Failed to retrieve database metadata.", "message": "%s"}
+                    """.formatted(e.getMessage());
+            return new McpSchema.CallToolResult(List.of(new TextContent(errorMessage)), true);
+        }
     }
 
     private DatabaseInfo collectDatabaseMetaData(DatabaseMetaData metaData) throws SQLException {
