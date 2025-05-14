@@ -16,10 +16,10 @@ import io.modelcontextprotocol.spec.McpSchema.TextContent;
 @Component
 public class ExplorerPromptProvider {
 
-    private static final String name = "data-explorer";
-    private static final String description = "Explores the connected database and create a dashboard.";
+    private static final String NAME = "data-explorer";
+    private static final String DESCRIPTION = "Explores the connected database and create a dashboard.";
 
-    private static final String promptText =
+    private static final String PROMPT_TEXT =
             """
             You are an AI Business data analyst. You are given access to a database and a set of tools to interact with it. 
             You can execute SQL queries, read the results, and analyze the data. You can also use the tools to explore 
@@ -50,14 +50,15 @@ public class ExplorerPromptProvider {
     
 
     private BiFunction<McpSyncServerExchange, McpSchema.GetPromptRequest, McpSchema.GetPromptResult> getPromptHandler() {
-        return (exchange, getPromptRequest) -> {
-            var userMessage = new PromptMessage(Role.USER, new TextContent(promptText));
-            return new GetPromptResult(description, List.of(userMessage));
-        };
+        return this::handleGetPrompt;
+    }
+
+    private McpSchema.GetPromptResult handleGetPrompt(McpSyncServerExchange exchange, McpSchema.GetPromptRequest getPromptRequest) {
+        var userMessage = new PromptMessage(Role.USER, new TextContent(PROMPT_TEXT));
+        return new GetPromptResult(DESCRIPTION, List.of(userMessage));
     }
 
     public McpServerFeatures.SyncPromptSpecification createPrompt() {
-        var prompt = new McpSchema.Prompt(name, description, List.of());
-        return new McpServerFeatures.SyncPromptSpecification(prompt, getPromptHandler());
+        return new McpServerFeatures.SyncPromptSpecification(new McpSchema.Prompt(NAME, DESCRIPTION, List.of()), getPromptHandler());
     }
 }
