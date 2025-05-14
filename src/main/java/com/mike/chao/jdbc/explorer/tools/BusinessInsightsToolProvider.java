@@ -65,6 +65,17 @@ public class BusinessInsightsToolProvider {
     }
 
     private McpSchema.CallToolResult handleAddBusinessInsight(McpSyncServerExchange exchange, Map<String, Object> args) {
+        if (args == null || args.isEmpty()) {
+            logToolActivity(exchange, "Error: No arguments provided.", LoggingLevel.ERROR);
+            return new McpSchema.CallToolResult(
+                List.of(new McpSchema.TextContent(
+                    """
+                    {"error": "NoArguments", "message": "No arguments provided"}
+                    """
+                )), 
+                true
+            );
+        }
         Object insight = args.get(INSIGHTS_ARG_KEY);
         exchange.loggingNotification(LoggingMessageNotification.builder()
             .data("Adding business insights...")
