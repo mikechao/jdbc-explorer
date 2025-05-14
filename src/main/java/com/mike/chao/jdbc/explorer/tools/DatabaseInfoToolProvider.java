@@ -19,6 +19,11 @@ import io.modelcontextprotocol.spec.McpSchema.LoggingLevel;
 import io.modelcontextprotocol.spec.McpSchema.LoggingMessageNotification;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 
+/**
+ * Provides a tool for retrieving database metadata through the Model Context Protocol (MCP).
+ * This component exposes database information such as product name, version, driver details,
+ * and SQL keywords to assist AI models in generating appropriate SQL queries.
+ */
 @Component
 public class DatabaseInfoToolProvider {
 
@@ -48,6 +53,13 @@ public class DatabaseInfoToolProvider {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Creates a specification for the database information tool.
+     * This tool retrieves metadata about the connected database including product name,
+     * version, and supported features.
+     *
+     * @return A synchronous tool specification for the MCP framework
+     */
     public McpServerFeatures.SyncToolSpecification getDatabaseInfoTool() {
         // Create the Tool record
         var tool = new McpSchema.Tool(
@@ -59,6 +71,14 @@ public class DatabaseInfoToolProvider {
         return new McpServerFeatures.SyncToolSpecification(tool, this::handleGetDatabaseInfo);
     }
 
+    /**
+     * Handles calls to the getDatabaseInfo tool.
+     * Retrieves database metadata and formats it as a JSON response.
+     *
+     * @param exchange The MCP server exchange for communication
+     * @param args Tool arguments (empty for this tool)
+     * @return The result containing database information as JSON
+     */
     private McpSchema.CallToolResult handleGetDatabaseInfo(McpSyncServerExchange exchange, Map<String, Object> args) {
         exchange.loggingNotification(LoggingMessageNotification.builder()
             .data("Getting database info...")
