@@ -2,6 +2,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server for connecting LLM to databases via JDBC. This server is implemented using the [Spring AI MCP](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html) framework. The server exposes tools, a prompt and resources to interact with the connected database.
 
+[![smithery badge](https://smithery.ai/badge/@mikechao/jdbc-explorer)](https://smithery.ai/server/@mikechao/jdbc-explorer)
 [![codecov](https://codecov.io/github/mikechao/jdbc-explorer/graph/badge.svg?token=326RPXDFJP)](https://codecov.io/github/mikechao/jdbc-explorer)
 
 ## Tools 🛠
@@ -93,6 +94,14 @@ Sample music store data including artists, albums, tracks, invoices etc.
 [Chinook Database](https://github.com/lerocha/chinook-database)
 
 ## Usage with Claude Desktop
+
+### Installing via Smithery
+
+To install JDBC Explorer for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@mikechao/jdbc-explorer):
+
+```bash
+npx -y @smithery/cli install @mikechao/jdbc-explorer --client claude
+```
 
 ### From jar
 
