@@ -1,0 +1,36 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - dbUrl
+    properties:
+      dbUrl:
+        type: string
+        description: JDBC URL for the database, e.g., jdbc:sqlite:sample.db
+      dbUsername:
+        type: string
+        description: Database username (optional)
+      dbPassword:
+        type: string
+        description: Database password (optional)
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'java',
+      args: [
+        '-jar',
+        'app.jar',
+        `--db.url=${config.dbUrl}`,
+        ...(config.dbUsername ? [`--db.username=${config.dbUsername}`] : []),
+        ...(config.dbPassword ? [`--db.password=${config.dbPassword}`] : []),
+      ],
+    })
+  exampleConfig:
+    dbUrl: jdbc:sqlite:sample.db
+    dbUsername: dbuser
+    dbPassword: dbpassword
